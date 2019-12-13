@@ -18,7 +18,7 @@ let currentEpisode = event.episodes[0]
 
 $: if(episodeNumberToPlay != null){
 	if(episodeNumberToPlay != currentEpisode.number){
-		playEpisode(episodeNumberToPlay)
+		playEpisode()
 	}
 }
  
@@ -68,9 +68,9 @@ function playAudio(){
 	audioPlayer.play()
 	.then( () => {
 		if(isFirstPlay){
-			setTimeout(function(){
-				audioPlayer.pause()
-			}, 2000)
+			// setTimeout(function(){
+			// 	audioPlayer.pause()
+			// }, 2000)
 			isFirstPlay = false
 		}
 		// if the play() succeeded, hide the permission modal

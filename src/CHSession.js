@@ -3,17 +3,23 @@ import EventEmitter from 'events'
 
 class CohortClientSession extends EventEmitter {
 
-  constructor(socketURL, occasionId){
+  constructor(socketURL, occasionId, tags = [ "all" ]){
     super()
     this.socketURL = socketURL
     this.occasionId = occasionId
     this.guid = uuid()
+    this.tags = tags
     this.connected = false
     this.socket
   }
 
   init(){
     return new Promise( async (resolve, reject) => {
+
+      if(!this.tags.includes("all")){
+        console.log("Adding default tag 'all' to Cohort session")
+        tags.push("all")
+      }
 
       try {
         this.socket = await this.connect()
@@ -29,7 +35,6 @@ class CohortClientSession extends EventEmitter {
   connect(){
     return new Promise( (resolve, reject) => {
       let socket 
-
       try {
         socket = new WebSocket(this.socketURL)
       } catch (error) {
@@ -94,6 +99,17 @@ class CohortClientSession extends EventEmitter {
 
     if(msg.cueAction != 0){
       throw new Error("Cohort for web browsers only supports playing (no pause, restart, stop) -- cueAction: 0")
+    }
+
+    let tagMatched = false
+    msg.targetTags.forEach( tag => {
+      if( this.tags.includes(tag)){
+        tagMatched = true
+        return
+      }
+    })
+    if(!tagMatched){
+      throw new Error("Based on tags, this cue is not intended for this client, so we're not triggering it.")
     }
 
     return msg

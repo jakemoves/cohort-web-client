@@ -2,6 +2,32 @@
 	// import Cookies from 'js-cookie'
 	import Event from './Event.svelte'
 	import CohortClientSession from './CHSession.js'
+	import queryString from 'query-string'
+	
+	
+	/*
+	 *    Prepare Cohort functionality (for live cues)
+	 */	
+	let environment = "prod" // can be local, dev, prod
+	let cohortSocketURL, mediaUrlPrefix
+
+	switch(environment){
+		case "local":
+			cohortSocketURL = 'ws://localhost:3000/sockets'
+			mediaUrlPrefix = 'media/sound/'
+			break
+		case "dev": 
+			cohortSocketURL = 'ws://jakemoves-old.local:3000/sockets'
+			mediaUrlPrefix = 'media/sound/'
+			// mediaUrlPrefix = 'https://overhear-winter-2019.s3.ca-central-1.amazonaws.com/'
+			break
+		case "prod":
+			cohortSocketURL = 'wss://staging.cohort.rocks/sockets'
+			mediaUrlPrefix = 'https://overhear-winter-2019.s3.ca-central-1.amazonaws.com/'
+			break
+		default:
+			throw new Error("invalid 'environment' value")
+	}
 
 	let overhearEvent = {
 		eventId: 6,
@@ -9,113 +35,97 @@
 		subLabel: "<em>Winter 2019</em>",
 		eventDescription: "[event description can go here].",
 		episodes: [{
-			label: "Welcome to Overhear",
-			description: "You can put your phone away now — we'll look after the rest. (Torien, images, descriptions, etc for each episode can go here...)",
-			number: 0,
-			cues: [{
-				cueNumber: 1,
-				mediaURL: "media/sound/Tutorial_Narration.mp3"
-			}]
-		},{
-			label: "Mystery Boy",
-			storyteller: "Braden Butler",
-			thumbnailImageURL: "media/images/mystery-boy.jpg",
-			thumbnailImageA11yText: "a man sitting alone in a café window with an empty seat beside him",
-			locationDescription: "Find a small cafe with a table for two near a window or on a patio.",
-			duration: "7:14",
-			description: "A young boy makes his first encounter with the carnage of love.",
-			contentWarning: "Content warning: sexual content",
+			label: "Intro",
+			description: "",
 			number: 1,
 			cues: [{
 				cueNumber: 1,
-				mediaURL: "media/sound/Mystery_Boy_Story_Intro.mp3"
-			},{
-				cueNumber: 2,
-				mediaURL: "media/sound/Mystery_Boy_Player_1.mp3"
-			},{
-				cueNumber: 3,
-				mediaURL: "media/sound/Mystery_Boy_Player_2.mp3"
+				mediaURL: mediaUrlPrefix + "01_Intro_ambience.mp3"
 			}]
 		},{
-			label: "That Thing Behind Glasses",
-			storyteller: "Andrea Folster",
-			locationDescription: "Find a place to sit facing an apartment or condo nice enough that you could see yourself living in it (ideally with a balcony).",
-			duration: "9:06",
-			thumbnailImageURL: "media/images/that-thing-behind-glasses.jpg",
-			thumbnailImageA11yText: "the front of a building, with many intriguing partially-lit windows",
-			description: "An internal monologue of an awkward Tinder date, navigating the line between safety and satisfaction.",
-			contentWarning: "Content warning: sensitive sexual content",
+			label: "Benny's Story",
+			storyteller: "[no storyteller]",
+			thumbnailImageURL: "",
+			thumbnailImageA11yText: "",
+			locationDescription: "",
+			duration: "5:29",
+			description: "[no description]",
+			contentWarning: "[no content warning]",
 			number: 2,
 			cues: [{
 				cueNumber: 1,
-				mediaURL: "media/sound/That_Thing_Behind_Glasses_Story_Intro.mp3"
-			},{
-				cueNumber: 2,
-				mediaURL: "media/sound/That_Thing_Behind_Glasses_Player_1__2.mp3"
-			},{
-				cueNumber: 3,
-				mediaURL: "media/sound/That_Thing_Behind_Glasses_Player_1__2.mp3"
+				mediaURL: mediaUrlPrefix + "02_Benny_s_Story.mp3"
 			}]
 		},{
-			label: "Fear on Foot",
-			storyteller: "Elise Pallagi",
-			locationDescription: "Find a long and winding urban alleyway, or a graffitied street.",
-			duration: "5:23",
-			thumbnailImageURL: "media/images/fear-on-foot.jpg",
-			thumbnailImageA11yText: "a run-down sidewalk at night",
-			description: "An examination of street harassment faced by women, queer and gender non conforming people.",
-			contentWarning: "Content Warning: graphic content, slurs",
+			label: "Kaylyn's Story",
+			storyteller: "[no storyteller]",
+			thumbnailImageURL: "",
+			thumbnailImageA11yText: "",
+			locationDescription: "",
+			duration: "5:30",
+			description: "[no description]",
+			contentWarning: "[no content warning]",
 			number: 3,
 			cues: [{
 				cueNumber: 1,
-				mediaURL: "media/sound/Fear_on_Foot_Story_Intro.mp3"
-			},{
-				cueNumber: 2,
-				mediaURL: "media/sound/Fear_on_Foot_Player_1__2.mp3"
-			},{
-				cueNumber: 3,
-				mediaURL: "media/sound/Fear_on_Foot_Player_1__2.mp3"
+				mediaURL: mediaUrlPrefix + "03_Kaylyn_s_Story.mp3"
 			}]
 		},{
-			label: "Take This Body",
-			storyteller: "Shanda Stefanson",
-			locationDescription: "Find a patio table.",
-			duration: "6:53",
-			thumbnailImageURL: "media/images/take-this-body.jpg",
-			thumbnailImageA11yText: "a piece of origami sitting on a park bench",
-			description: '<strong>You\'ll need some simple props for this story</strong><br/> An invitation to explore someone’s body and its history through poetry and interactive paper craft. This story is accompanied by an image; <a href="media/images/Butterfly_Origami.jpg" target="_blank">tap here</a> to see it. You\'ll also need <strong>a piece of square paper and a pen or pencil</strong> for each player.',
-			contentWarning: "Content warning: sensitive sexual content, sexual harassment / assault",
+			label: "Kokum's Story",
+			storyteller: "[no storyteller]",
+			thumbnailImageURL: "",
+			thumbnailImageA11yText: "",
+			locationDescription: "",
+			duration: "5:52",
+			description: "[no description]",
+			contentWarning: "[no content warning]",
 			number: 4,
 			cues: [{
 				cueNumber: 1,
-				mediaURL: "media/sound/Take_This_Body_Story_Intro.mp3"
-			},{
-				cueNumber: 2,
-				mediaURL: "media/sound/Take_This_Body_Player_1__2.mp3"
-			},{
-				cueNumber: 3,
-				mediaURL: "media/sound/Take_This_Body_Player_1__2.mp3"
+				mediaURL: mediaUrlPrefix + "04_Kokum_s_Story.mp3"
 			}]
 		},{
-			label: "Paths in the Dark",
-			storyteller: "Amberlin Hsu",
-			locationDescription: "Find a path that forks into two in a park.",
-			duration: "8:40",
-			thumbnailImageURL: "media/images/paths-in-the-dark.jpg",
-			thumbnailImageA11yText: "a forking path in a park",
-			description: "Which path is safest when your love is dangerous and your home won’t protect you?",
-			contentWarning: "Content warning: violence",
+			label: "Rachel's Story",
+			storyteller: "[no storyteller]",
+			thumbnailImageURL: "",
+			thumbnailImageA11yText: "",
+			locationDescription: "",
+			duration: "5:15",
+			description: "[no description]",
+			contentWarning: "[no content warning]",
 			number: 5,
 			cues: [{
 				cueNumber: 1,
-				mediaURL: "media/sound/Paths_in_the_Dark_Story_Intro.mp3"
-			},{
-				cueNumber: 2,
-				mediaURL: "media/sound/Paths_in_the_Dark_Player_1__2.mp3"
-			},{
-				cueNumber: 3,
-				mediaURL: "media/sound/Paths_in_the_Dark_Player_1__2.mp3"
+				mediaURL: mediaUrlPrefix + "05_Rachel_s_Story.mp3"
 			}]
+		},{
+			label: "Sara's Story",
+			storyteller: "[no storyteller]",
+			thumbnailImageURL: "",
+			thumbnailImageA11yText: "",
+			locationDescription: "",
+			duration: "4:53",
+			description: "[no description]",
+			contentWarning: "[no content warning]",
+			number: 7,
+			cues: [{
+				cueNumber: 1,
+				mediaURL: mediaUrlPrefix + "07_Sara_s_Story.mp3"
+			}]
+		},{
+			label: "Curtain call",
+			storyteller: "[no storyteller]",
+			thumbnailImageURL: "",
+			thumbnailImageA11yText: "",
+			locationDescription: "",
+			duration: "",
+			description: "[no description]",
+			contentWarning: "[no content warning]",
+			number: 8,
+			cues: [{
+				cueNumber: 1,
+				mediaURL: mediaUrlPrefix + "08_Curtain_call.mp3"
+			}],
 		}],
 		storytellers: [{
 			name: "Braden Butler",
@@ -154,20 +164,23 @@
 			bio: "Amberlin Hsu is a SATA-winning producer, designer (lighting, costumes, set), and choreographer based in Tokyo and Saskatoon, Canada. She took dance at NTUA in Taiwan and graduated from the University of Saskatchewan with a BFA in Drama (Design). As co-AD of It’s Not A Box Theatre with Torien Cafferata, her recent devised theatre credits include: <em>pimohtēwak</em> (2019), <em>Overhear</em> (2016-2019), <em>cell</em> (2017), <em>Hypneurosis</em> (2016), and <em>Project O</em> (2015). Recent lighting design credits: <em>The Death of a Salesman</em> (Theatre Naught), <em>Displaced</em> (Ground Cover Theatre), <em>Dominion</em> (GTNT), and <em>Les Liaisons Dangereuses</em> (Theatre Naught); Recent costume design credits: <em>The Death of A Salesman</em> (Theatre Naught), <em>Southern Dandy 75</em> (Otto Helmut Productions), <em>Aiden Flynn Lost his Brother, So He Makes Another</em> (Theatre Howl), <em>Macbeth</em> (Embrace Theatre)."
 		}]
 	}
+
 	let cohortOccasion = 6
-
 	let connectedToCohortServer = false
-	let episodeNumberToPlay = 0 // used to trigger episode playback remotely (from cohort server)
+	let episodeNumberToPlay = 1 // used to trigger episode playback remotely (from cohort server)
 
-	/*
-	 *    Prepare Cohort functionality (for live cues)
-	 */
+	// get grouping info (tags) from URL
+	// this is used to target cues to specific groupings
+	const cohortTags = [ "all" ]
+	const parsedQueryString = queryString.parse(location.search)
+	// console.log(parsedQueryString)
+	const grouping = parsedQueryString.grouping
+	// console.log(grouping)
+	if(grouping != null && grouping !== undefined){
+		cohortTags.push(grouping)
+	}
 
-	let cohortSession = new CohortClientSession('wss://staging.cohort.rocks/sockets', 6)	
-	
-	// let cohortSession = new CohortClientSession('ws://localhost:3000/sockets', 6)
-
-	// let cohortSession = new CohortClientSession('ws://jakemoves-old.local:3000/sockets', 6)
+	let cohortSession = new CohortClientSession(cohortSocketURL, cohortOccasion, cohortTags)
 
 	cohortSession.on('connected', () => {
 		connectedToCohortServer = true
@@ -185,52 +198,9 @@
 	})
 
 	cohortSession.init()
-
 	/*
 	 *    End Cohort
 	 */
-
-	// we want the episodes to be presented in a random order, so let's shuffle them
-	// let episodes = overhearEvent.episodes
-
-	// // set aside the tutorial so it doesn't get shuffled
-	// let tutorial = episodes.splice(0, 1)[0]
-
-	// // console.log(episodes.map( ep => ep.label))
-
-	// // shuffle the episodes
-	// for(var i = episodes.length -1; i > 0; i--){
-	// 	let randomIndex = Math.floor(Math.random() * (i+1))
-
-	// 	// this should work but doesn't, seems like a bug with rollup
-	// 	// [episodes[i], episodes[randomIndex]] = [episodes[randomIndex], episodes[i]]
-		
-	// 	// so let's do it the old way
-	// 	let epA = episodes[i]
-	// 	episodes[i] = episodes[randomIndex]
-	// 	episodes[randomIndex] = epA
-	// }
-
-	// // bring back the tutorial
-	// episodes.splice(0, 0, tutorial)
-	
-	// delete overhearEvent.episodes
-	// overhearEvent.episodes = episodes
-
-	// console.log(overhearEvent.episodes.map( ep => [ep.label, ep.cues]))
-
-	// const serverURL = "https://cohort.rocks/api/v1"
-	// const socketURL = "wss://cohort.rocks/sockets"
-	// const eventId = 4
-	// let eventDetails
-	// let cohortState = ''
-	// let clientSocket
-
-	// if(Cookies.get('cohort-device-guid') === undefined){
-	// 	Cookies.set('cohort-device-guid', Guid(), { expires: 7 })
-	// }
-	// const guid = Cookies.get('cohort-device-guid')
-
 </script>
 
 <style>
