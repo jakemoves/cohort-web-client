@@ -8,7 +8,7 @@
 	/*
 	 *    Prepare Cohort functionality (for live cues)
 	 */	
-	let environment = "prod" // can be local, dev, prod
+	let environment = "dev" // can be local, dev, prod
 	let cohortSocketURL, mediaUrlPrefix
 
 	switch(environment){
@@ -173,9 +173,9 @@
 	// this is used to target cues to specific groupings
 	const cohortTags = [ "all" ]
 	const parsedQueryString = queryString.parse(location.search)
-	// console.log(parsedQueryString)
+	console.log(parsedQueryString)
 	const grouping = parsedQueryString.grouping
-	// console.log(grouping)
+	console.log(grouping)
 	if(grouping != null && grouping !== undefined){
 		cohortTags.push(grouping)
 	}
