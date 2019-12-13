@@ -1,17 +1,16 @@
 <script>
 	// import Cookies from 'js-cookie'
-	// import Guid from 'uuid/v4'
 	import Event from './Event.svelte'
 	import CohortClientSession from './CHSession.js'
 
 	let overhearEvent = {
 		eventId: 6,
-		label: "Overhear Solo",
-		subLabel: "<em>BODIES<br />Love / Sex / Survival<br /><span class='small'>(Prague Quadrennial 2019)</span></em>",
-		eventDescription: "Solo is the latest development in the Overhear Project. The goal: to provide audiences anywhere and anytime the opportunity to engage with the many stories we have curated, sharing space with each other, playing roles, and interacting with their own local spaces. The set of stories we have launched with all require two players, ideally couples or dates, and explores the micro-choreography of intimacy — and vulnerability. Click on the tutorial below!",
+		label: "Overhear",
+		subLabel: "<em>Winter 2019</em>",
+		eventDescription: "[event description can go here].",
 		episodes: [{
-			label: "Tutorial",
-			description: "If this is your first time with Overhear Solo, <strong>please listen to this tutorial.</strong> These are <strong>interactive stories</strong> that will require you to adopt roles and perform simple tasks. <em>Overhear Solo: BODIES</em> is <strong>best experienced in the evening</strong>, so stay safe.",
+			label: "Welcome to Overhear",
+			description: "You can put your phone away now — we'll look after the rest. (Torien, images, descriptions, etc for each episode can go here...)",
 			number: 0,
 			cues: [{
 				cueNumber: 1,
@@ -164,9 +163,11 @@
 	 *    Prepare Cohort functionality (for live cues)
 	 */
 
-	// let cohortSession = new CohortClientSession('wss://staging.cohort.rocks/sockets', 6)	
+	let cohortSession = new CohortClientSession('wss://staging.cohort.rocks/sockets', 6)	
 	
-	let cohortSession = new CohortClientSession('ws://localhost:3000/sockets', 6)
+	// let cohortSession = new CohortClientSession('ws://localhost:3000/sockets', 6)
+
+	// let cohortSession = new CohortClientSession('ws://jakemoves-old.local:3000/sockets', 6)
 
 	cohortSession.on('connected', () => {
 		connectedToCohortServer = true

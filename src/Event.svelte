@@ -28,16 +28,23 @@ onMount( () => {
 	audioPlayer.addEventListener('play', () => {
 		console.log('player: play')
 	})
+	audioPlayer.addEventListener('loadedmetadata', () => {
+		console.log('player: loadedmetadata')
+		playAudio()
+	})
 	audioPlayer.addEventListener('loadeddata', () => {
 		console.log('player: loadeddata')
-		if(!isFirstPlay){
-			playAudio()
-		}
+	})
+	audioPlayer.addEventListener('canplay', () => {
+		console.log('player: canplay')
+		playAudio()
+	})
+	audioPlayer.addEventListener('emptied', () => {
+		console.log('player: emptied')
 	})
 })
 
 function playEpisode(){
-	console.log(1)
 	if(episodeNumberToPlay == null || episodeNumberToPlay === undefined){
 		return
 	}
@@ -53,8 +60,8 @@ function playEpisode(){
 	currentEpisode = episode
 	audioURL = currentEpisode.cues[0].mediaURL
 	console.log(audioURL)
-
-	playAudio()
+	
+	audioPlayer.load()
 }
 
 function playAudio(){
@@ -67,7 +74,7 @@ function playAudio(){
 			isFirstPlay = false
 		}
 		// if the play() succeeded, hide the permission modal
-		// showAudioPermissionsModal = false
+		showAudioPermissionsModal = false
 	})
 	.catch( error => {
 		if(
@@ -76,7 +83,7 @@ function playAudio(){
 
 			// remote play failed because the user hasn't manually started any audio on the page yet
 			console.log("need user permission for audio playback")
-			// showAudioPermissionsModal = true
+			showAudioPermissionsModal = true
 		} else {
 			console.log(error)
 		}
@@ -105,7 +112,7 @@ h1 {
 
 <h1>{event.label}
 	{#if connectedToCohortServer}
-		<span class="text-success">+ live</span>
+		<span class="text-success"> live</span>
 	{/if}
 </h1>
 {#if event.thumbnailImageURL}
@@ -120,9 +127,21 @@ h1 {
 {/if}
 
 {#if isFirstPlay}
-<button class="btn btn-success" on:click={playEpisode}>
+<button class="btn btn-success btn-block" on:click={playEpisode}>
 	Join
 </button>
+{/if}
+
+{#if currentEpisode != null && !isFirstPlay}
+<div class="text-center">
+	<h5>{currentEpisode.label}</h5>
+	
+	{#if currentEpisode.storyteller !== undefined}
+	<p>By {currentEpisode.storyteller}</p>
+	{/if}
+
+	<p>{@html currentEpisode.description}</p>
+</div>
 {/if}
 
 <audio 
