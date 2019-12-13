@@ -13,13 +13,21 @@ let showAudioPermissionsModal = false
 let audioPlayer
 let audioURL
 let isFirstPlay = true
-
+let audioPlayerStatus
+let statusText
 let currentEpisode = event.episodes[0]
+let showLoadingIndicator = false
 
 $: if(episodeNumberToPlay != null){
 	if(episodeNumberToPlay != currentEpisode.number){
 		playEpisode()
 	}
+}
+
+$: if(audioPlayerStatus == "playing" || isFirstPlay){
+	showLoadingIndicator = false
+} else {
+	showLoadingIndicator = true
 }
  
 onMount( () => {
@@ -27,20 +35,29 @@ onMount( () => {
 
 	audioPlayer.addEventListener('play', () => {
 		console.log('player: play')
+		audioPlayerStatus = "play"
 	})
 	audioPlayer.addEventListener('loadedmetadata', () => {
 		console.log('player: loadedmetadata')
+		audioPlayerStatus = "loadedmetadata"
 		playAudio()
 	})
 	audioPlayer.addEventListener('loadeddata', () => {
+		audioPlayerStatus = "loadeddata"
 		console.log('player: loadeddata')
 	})
 	audioPlayer.addEventListener('canplay', () => {
 		console.log('player: canplay')
+		audioPlayerStatus = "canplay"
 		playAudio()
 	})
 	audioPlayer.addEventListener('emptied', () => {
 		console.log('player: emptied')
+		audioPlayerStatus = "emptied"
+	})
+	audioPlayer.addEventListener('playing', () => {
+		console.log('player: playing')
+		audioPlayerStatus = "playing"
 	})
 })
 
@@ -130,6 +147,10 @@ h1 {
 <button class="btn btn-success btn-block" on:click={playEpisode}>
 	Join
 </button>
+{/if}
+
+{#if showLoadingIndicator}
+<div class="alert alert-warning mt-2 text-center">Loading...</div>
 {/if}
 
 {#if currentEpisode != null && !isFirstPlay}

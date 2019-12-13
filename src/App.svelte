@@ -8,7 +8,7 @@
 	/*
 	 *    Prepare Cohort functionality (for live cues)
 	 */	
-	let environment = "dev" // can be local, dev, prod
+	let environment = "prod" // can be local, dev, prod
 	let cohortSocketURL, mediaUrlPrefix
 
 	switch(environment){
@@ -218,6 +218,11 @@
 				connectedToCohortServer={connectedToCohortServer}
 				episodeNumberToPlay={episodeNumberToPlay}
 			/>
+		</div>
+	</div>
+	<div class="row mt-4">
+		<div class="col text-center">
+			<p class="small">groups: {#each cohortSession.tags as tag}<span class="grouping">{tag}</span>, {/each}</p>
 		</div>
 	</div>
 </div>
