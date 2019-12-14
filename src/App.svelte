@@ -110,22 +110,8 @@
 			number: 7,
 			cues: [{
 				cueNumber: 1,
-				mediaURL: mediaUrlPrefix + "07_Sara_s_Story.mp3"
+				mediaURL: mediaUrlPrefix + "07_Sara_s_Story_and_curtain_call.mp3"
 			}]
-		},{
-			label: "Curtain call",
-			storyteller: "[no storyteller]",
-			thumbnailImageURL: "",
-			thumbnailImageA11yText: "",
-			locationDescription: "",
-			duration: "",
-			description: "[no description]",
-			contentWarning: "[no content warning]",
-			number: 8,
-			cues: [{
-				cueNumber: 1,
-				mediaURL: mediaUrlPrefix + "08_Curtain_call.mp3"
-			}],
 		}],
 		storytellers: [{
 			name: "Braden Butler",
