@@ -99,6 +99,20 @@
 				mediaURL: mediaUrlPrefix + "05_Rachel_s_Story.mp3"
 			}]
 		},{
+			label: "Allison's Story",
+			storyteller: "[no storyteller]",
+			thumbnailImageURL: "",
+			thumbnailImageA11yText: "",
+			locationDescription: "",
+			duration: "5:15",
+			description: "[no description]",
+			contentWarning: "[no content warning]",
+			number: 6,
+			cues: [{
+				cueNumber: 1,
+				mediaURL: mediaUrlPrefix + "06_Allison_s_Story.mp3"
+			}]
+		},{
 			label: "Sara's Story",
 			storyteller: "[no storyteller]",
 			thumbnailImageURL: "",
