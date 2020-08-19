@@ -93,8 +93,8 @@ class CohortClientSession extends EventEmitter {
       throw new Error("message does not include 'cueNumber' field")
     }
     
-    if(msg.mediaDomain !== 0 && msg.mediaDomain !== 3){
-      throw new Error("Cohort for web browsers only supports audio cues (mediaDomain: 0) and text cues (mediaDomain: 3)")
+    if(msg.mediaDomain !== 0 && msg.mediaDomain !== 3 && msg.mediaDomain !== 4){
+      throw new Error("Cohort for web browsers only supports audio cues (mediaDomain: 0), text cues (mediaDomain: 3), and lighting cues (mediaDomain: 4)")
     }
 
     if(msg.cueAction != 0){

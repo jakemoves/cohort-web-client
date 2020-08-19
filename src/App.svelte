@@ -43,15 +43,22 @@
 
 	let cohortOccasion = 14
 	let connectedToCohortServer = false
-	let episodeNumberToPlay = 1 // used to trigger episode playback remotely (from cohort server)
+
+	// on text cue
 	$: latestTextCueContent = ""
 	$: splitTextCueContent = latestTextCueContent.split("|")
-
 	let optionButtonLabels
 	$: if(splitTextCueContent[0] != ""){
 		optionButtonLabels = splitTextCueContent
 	} else {
 		optionButtonLabels = []
+	}
+
+	// on lighting cue
+	$: backgroundColor = "rgb(255, 240, 240)"
+	$: {
+		let body = document.getElementsByTagName("body")[0]
+		body.setAttribute("style", "background-color: " + backgroundColor)
 	}
 
 	// get grouping info (tags) from URL
@@ -93,6 +100,8 @@
 		if(cueMatchesTarget){
 			if(cue.mediaDomain == 3 && cue.cueContent !== undefined){
 				latestTextCueContent = cue.cueContent
+			} else if(cue.mediaDomain == 4 && cue.cueContent !== undefined){
+				backgroundColor = cue.cueContent
 			}
 		}
 	})
@@ -275,6 +284,11 @@
 
 <svelte:head>
 	<link rel="stylesheet" href="bootstrap/bootstrap.css">
+	<style>
+		body {
+			transition: background-color 5s ease-in-out;
+		}
+	</style>
 </svelte:head>
 
 <div class="container">
@@ -291,7 +305,7 @@
 				{#each optionButtonLabels as buttonLabel}
 					<button 
 						type="button" 
-						class="btn btn-outline-success text-center"
+						class="btn btn-outline-primary text-center"
 						on:click={e => onOptionSelected(e.target.innerHTML)}>
 						{buttonLabel}
 					</button>
