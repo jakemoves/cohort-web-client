@@ -39,6 +39,85 @@
 		}]
 	}
 
+	
+
+	let cohortOccasion = 14
+	let connectedToCohortServer = false
+	let episodeNumberToPlay = 1 // used to trigger episode playback remotely (from cohort server)
+	$: latestTextCueContent = ""
+	$: splitTextCueContent = latestTextCueContent.split("|")
+
+	let optionButtonLabels
+	$: if(splitTextCueContent[0] != ""){
+		optionButtonLabels = splitTextCueContent
+	} else {
+		optionButtonLabels = []
+	}
+
+	// get grouping info (tags) from URL
+	// this is used to target cues to specific groupings
+	const cohortTags = [ "all" ]
+	const parsedQueryString = queryString.parse(location.search)
+	// console.log(parsedQueryString)
+	const grouping = parsedQueryString.grouping
+	// console.log(grouping)
+	if(grouping != null && grouping !== undefined){
+		cohortTags.push(grouping)
+	}
+
+	let cohortSession = new CohortClientSession(cohortSocketURL, cohortOccasion, cohortTags)
+
+	cohortSession.on('connected', () => {
+		connectedToCohortServer = true
+		console.log('connected to cohort server')
+	})
+	cohortSession.on('disconnected', (message) => {
+		connectedToCohortServer = false
+		console.log(connectedToCohortServer)
+	})
+	cohortSession.on('cueReceived', (cue) => {
+		console.log('cue received:')
+		console.log(cue)
+
+		let cueMatchesTarget = false
+		
+		console.log(cohortTags)
+		for(var i = 0; i < cue.targetTags.length; i++){
+			console.log(cue.targetTags[i])
+			if(cohortTags.includes(cue.targetTags[i])){
+				cueMatchesTarget = true
+				break
+			}
+		}
+
+		if(cueMatchesTarget){
+			if(cue.mediaDomain == 3 && cue.cueContent !== undefined){
+				latestTextCueContent = cue.cueContent
+			}
+		}
+	})
+
+	cohortSession.init()
+
+	const onOptionSelected = function(option){
+
+      fetch("https://new.cohort.rocks/api/v2/occasions/" + cohortOccasion + "/broadcast", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldl91c2VyIiwiaWF0IjoxNTgzNjExNzk2fQ.k_9oasZ-c3-gvMKOJAHcN9Q56cKkhdeJiU2DlKhCuc4'},
+        body: JSON.stringify({
+					mediaDomain: 3,
+					cueNumber: 1,
+					cueAction: 0,
+					targetTags: ["stage_manager"],
+					cueContent: option
+				})
+      })
+	}
+	/*
+	 *    End Cohort
+	 */
+
+
 	// let overhearEvent = {
 	// 	eventId: 6,
 	// 	label: "Overhear",
@@ -174,69 +253,6 @@
 	// 		bio: "Amberlin Hsu is a SATA-winning producer, designer (lighting, costumes, set), and choreographer based in Tokyo and Saskatoon, Canada. She took dance at NTUA in Taiwan and graduated from the University of Saskatchewan with a BFA in Drama (Design). As co-AD of It’s Not A Box Theatre with Torien Cafferata, her recent devised theatre credits include: <em>pimohtēwak</em> (2019), <em>Overhear</em> (2016-2019), <em>cell</em> (2017), <em>Hypneurosis</em> (2016), and <em>Project O</em> (2015). Recent lighting design credits: <em>The Death of a Salesman</em> (Theatre Naught), <em>Displaced</em> (Ground Cover Theatre), <em>Dominion</em> (GTNT), and <em>Les Liaisons Dangereuses</em> (Theatre Naught); Recent costume design credits: <em>The Death of A Salesman</em> (Theatre Naught), <em>Southern Dandy 75</em> (Otto Helmut Productions), <em>Aiden Flynn Lost his Brother, So He Makes Another</em> (Theatre Howl), <em>Macbeth</em> (Embrace Theatre)."
 	// 	}]
 	// }
-
-	let cohortOccasion = 14
-	let connectedToCohortServer = false
-	let episodeNumberToPlay = 1 // used to trigger episode playback remotely (from cohort server)
-	$: latestTextCueContent = ""
-	$: splitTextCueContent = latestTextCueContent.split("|")
-
-	let optionButtonLabels
-	$: if(splitTextCueContent[0] != ""){
-		optionButtonLabels = splitTextCueContent
-	} else {
-		optionButtonLabels = []
-	}
-
-		
-
-	// get grouping info (tags) from URL
-	// this is used to target cues to specific groupings
-	const cohortTags = [ "all" ]
-	const parsedQueryString = queryString.parse(location.search)
-	// console.log(parsedQueryString)
-	const grouping = parsedQueryString.grouping
-	// console.log(grouping)
-	if(grouping != null && grouping !== undefined){
-		cohortTags.push(grouping)
-	}
-
-	let cohortSession = new CohortClientSession(cohortSocketURL, cohortOccasion, cohortTags)
-
-	cohortSession.on('connected', () => {
-		connectedToCohortServer = true
-		console.log('connected to cohort server')
-	})
-	cohortSession.on('disconnected', (message) => {
-		connectedToCohortServer = false
-		console.log(connectedToCohortServer)
-	})
-	cohortSession.on('cueReceived', (cue) => {
-		console.log('cue received:')
-		console.log(cue)
-
-		let cueMatchesTarget = false
-		
-		console.log(cohortTags)
-		for(var i = 0; i < cue.targetTags.length; i++){
-			console.log(cue.targetTags[i])
-			if(cohortTags.includes(cue.targetTags[i])){
-				cueMatchesTarget = true
-				break
-			}
-		}
-
-		if(cueMatchesTarget){
-			if(cue.mediaDomain == 3 && cue.cueContent !== undefined){
-				latestTextCueContent = cue.cueContent
-			}
-		}
-	})
-
-	cohortSession.init()
-	/*
-	 *    End Cohort
-	 */
 </script>
 
 <style>	
@@ -249,6 +265,11 @@
 	ul > li {
 		list-style-type: none;
 		height: 4rem;
+	}
+
+	button {
+		margin-right: 1rem;
+		margin-bottom: 1rem;
 	}
 </style>
 
@@ -265,17 +286,18 @@
 		/> -->
 		
 		<!-- itinerary UI goes here -->
-		<ul class="d-flex flex-wrap mt-8">
-			<li class="col-4 mb-4">
+		<!-- <ul class="d-flex flex-wrap mt-8"> -->
+			<!-- <li class="mb-4"> -->
 				{#each optionButtonLabels as buttonLabel}
 					<button 
 						type="button" 
-						class="btn btn-outline-success btn-block text-center">
+						class="btn btn-outline-success text-center"
+						on:click={e => onOptionSelected(e.target.innerHTML)}>
 						{buttonLabel}
 					</button>
 				{/each}
-			</li>
-		</ul>
+			<!-- </li> -->
+		<!-- </ul> -->
 	</div>
 
 	<div class="row mt-4">
