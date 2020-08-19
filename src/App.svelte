@@ -215,10 +215,19 @@
 		console.log('cue received:')
 		console.log(cue)
 
-		if(cue.mediaDomain == 3){
-			console.log(0)
-			if(cue.cueContent !== undefined){
-				console.log(1)
+		let cueMatchesTarget = false
+		
+		console.log(cohortTags)
+		for(var i = 0; i < cue.targetTags.length; i++){
+			console.log(cue.targetTags[i])
+			if(cohortTags.includes(cue.targetTags[i])){
+				cueMatchesTarget = true
+				break
+			}
+		}
+
+		if(cueMatchesTarget){
+			if(cue.mediaDomain == 3 && cue.cueContent !== undefined){
 				latestTextCueContent = cue.cueContent
 			}
 		}
