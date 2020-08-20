@@ -229,7 +229,7 @@ label{
     <div class="row mt-3">
       <div class="col-md-12">
         <div class="slider-container status-{broadcastStatus} text-center">
-          <label for="cue-control-go">Drag slider to the right to fire cue</label>
+          <label for="cue-control-go">Drag slider to the right to confirm selection</label>
           <input type="range" min="0" max="100" value="0" id="cue-control-go" onchange=onCueSliderInput(event)>
           <div class="alert alert-success text-center">
             {broadcastResults}

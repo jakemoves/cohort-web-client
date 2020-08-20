@@ -3,6 +3,7 @@
 	import Event from './Event.svelte'
 	import CohortClientSession from './CHClientSession.js'
 	import Slider from './Slider.svelte'
+	import WebsocketConnectionIndicator from './WebsocketConnectionIndicator.svelte'
 	import queryString from 'query-string'
 	
 	
@@ -10,7 +11,7 @@
 	 *    Prepare Cohort functionality (for live cues)
 	 */	
 	let environment = "prod" // can be local, dev, prod
-	let cohortSocketURL, mediaUrlPrefix
+	let cohortSocketURL
 
 	switch(environment){
 		case "local":
@@ -37,9 +38,23 @@
 	}
 
 	
+	let playerLabel = ""
+	let didSubmitPlayerLabel = false
+
+	const onSubmitPlayerLabel = function(){
+		didSubmitPlayerLabel = true
+		startCohort()
+	}
 
 	let cohortOccasion = 14
 	let connectedToCohortServer = false
+	let connectionState = "unknown"
+  $: {
+    if(connectedToCohortServer === undefined){ connectionState = "unknown" }
+    else if(connectedToCohortServer == true){ connectionState = "active" }
+    else if(connectedToCohortServer == false){ connectionState = "inactive"}
+	}
+	
 	let selectedOption = ""
 	$: cueForSelectedOption = {
 		mediaDomain: 3,
@@ -65,53 +80,70 @@
 		let body = document.getElementsByTagName("body")[0]
 		body.setAttribute("style", "background-color: " + backgroundColor)
 	}
+	
+	let cohortTags, cohortSession, clientPingInterval
 
-	// get grouping info (tags) from URL
-	// this is used to target cues to specific groupings
-	const cohortTags = [ "all" ]
-	const parsedQueryString = queryString.parse(location.search)
-	// console.log(parsedQueryString)
-	const grouping = parsedQueryString.grouping
-	// console.log(grouping)
-	if(grouping != null && grouping !== undefined){
-		cohortTags.push(grouping)
+	const startCohort = function(){
+		// get grouping info (tags) from URL
+		// this is used to target cues to specific groupings
+		cohortTags = [ "all" ]
+		const parsedQueryString = queryString.parse(location.search)
+		// console.log(parsedQueryString)
+		const grouping = parsedQueryString.grouping
+		// console.log(grouping)
+		if(grouping != null && grouping !== undefined){
+			cohortTags.push(grouping)
+		}
+
+	 	cohortSession = new CohortClientSession(cohortSocketURL, cohortOccasion, cohortTags, playerLabel)
+
+		cohortSession.on('connected', () => {
+			connectedToCohortServer = true
+			console.log('connected to cohort server')
+			clientPingInterval = setInterval(function(){
+				const payload = { action: "client_ping", clientGuid: cohortSession.guid }
+				cohortSession.send(payload)
+				connectedToCohortServer = false
+			}, 5000)
+		})
+
+		cohortSession.on('disconnected', (message) => {
+			connectedToCohortServer = false
+			console.log(connectedToCohortServer)
+			clearInterval(clientPingInterval)
+		})
+		cohortSession.on('dataReceived', data => {
+			if(data.dataIdentifier == "client_pong"){
+				connectedToCohortServer = true
+			}
+		})
+		cohortSession.on('cueReceived', (cue) => {
+			console.log('cue received:')
+			console.log(cue)
+
+			let cueMatchesTarget = false
+			
+			console.log(cohortTags)
+			for(var i = 0; i < cue.targetTags.length; i++){
+				console.log(cue.targetTags[i])
+				if(cohortTags.includes(cue.targetTags[i])){
+					cueMatchesTarget = true
+					break
+				}
+			}
+
+			if(cueMatchesTarget){
+				if(cue.mediaDomain == 3 && cue.cueContent !== undefined){
+					latestTextCueContent = cue.cueContent
+				} else if(cue.mediaDomain == 4 && cue.cueContent !== undefined){
+					backgroundColor = cue.cueContent
+				}
+			}
+		})
+
+		cohortSession.init()
 	}
-
-	let cohortSession = new CohortClientSession(cohortSocketURL, cohortOccasion, cohortTags)
-
-	cohortSession.on('connected', () => {
-		connectedToCohortServer = true
-		console.log('connected to cohort server')
-	})
-	cohortSession.on('disconnected', (message) => {
-		connectedToCohortServer = false
-		console.log(connectedToCohortServer)
-	})
-	cohortSession.on('cueReceived', (cue) => {
-		console.log('cue received:')
-		console.log(cue)
-
-		let cueMatchesTarget = false
-		
-		console.log(cohortTags)
-		for(var i = 0; i < cue.targetTags.length; i++){
-			console.log(cue.targetTags[i])
-			if(cohortTags.includes(cue.targetTags[i])){
-				cueMatchesTarget = true
-				break
-			}
-		}
-
-		if(cueMatchesTarget){
-			if(cue.mediaDomain == 3 && cue.cueContent !== undefined){
-				latestTextCueContent = cue.cueContent
-			} else if(cue.mediaDomain == 4 && cue.cueContent !== undefined){
-				backgroundColor = cue.cueContent
-			}
-		}
-	})
-
-	cohortSession.init()
+	
 
 	const onOptionSelected = function(option){
 		selectedOption = option
@@ -298,6 +330,25 @@
 
 <div class="container">
 	<div class="row">
+		<div class="col">
+			{#if !didSubmitPlayerLabel}
+				<form>
+					<div class="form-group">
+						<label for="playerLabel">Tell us your first name:</label>
+						<input type="text" id="playerLabel" name="playerLabel" bind:value={playerLabel}>
+					</div>	
+					<button class="btn btn-outline-primary" disabled={ playerLabel == "" } on:click={ onSubmitPlayerLabel }>Submit</button>
+				</form>
+			{:else}
+				<p>
+					Player: { playerLabel } <br/>
+					Connection: <WebsocketConnectionIndicator status={connectionState}/>
+				</p>
+			{/if}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col">
 		<!-- <Event 
 			event={itineraryEvent} 
 			connectedToCohortServer={connectedToCohortServer}
@@ -307,23 +358,32 @@
 		<!-- itinerary UI goes here -->
 		<!-- <ul class="d-flex flex-wrap mt-8"> -->
 			<!-- <li class="mb-4"> -->
-				{#each optionButtonLabels as buttonLabel}
-					<button 
-						type="button" 
-						class="btn btn-outline-primary text-center"
-						on:click={e => onOptionSelected(e.target.innerHTML)}>
-						{buttonLabel}
-					</button>
-				{/each}
+			{#each optionButtonLabels as buttonLabel}
+				<button 
+					type="button" 
+					class="btn btn-outline-primary text-center"
+					on:click={e => onOptionSelected(e.target.innerHTML)}>
+					{buttonLabel}
+				</button>
+			{/each}
 			<!-- </li> -->
 		<!-- </ul> -->
+		</div>
 	</div>
 
-	<Slider serverURL={"https://otm.cohort.rocks/api/v2"} focusedOccasionID={14} broadcastStatus={"unsent"} sliderCue={cueForSelectedOption}></Slider>
+	<div class="row">
+		<div class="col">
+			{#if selectedOption != ""}
+				<Slider serverURL={"https://otm.cohort.rocks/api/v2"} focusedOccasionID={14} broadcastStatus={"unsent"} sliderCue={cueForSelectedOption}></Slider>
+			{/if}
 
-	<div class="row mt-4">
-		<div class="col text-center">
-			<p class="small">groups: {#each cohortSession.tags as tag}<span class="grouping">{tag}</span>, {/each}</p>
+			<div class="row mt-4">
+				<div class="col text-center">
+				{#if cohortSession !== undefined}
+					<p class="small">groups: {#each cohortSession.tags as tag}<span class="grouping">{tag}</span>, {/each}</p>
+				{/if}
+				</div>
+			</div>
 		</div>
 	</div>
 </div>

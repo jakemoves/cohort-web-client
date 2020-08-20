@@ -3,11 +3,11 @@ import EventEmitter from 'events'
 
 class CohortClientSession extends EventEmitter {
 
-  constructor(socketURL, occasionId, tags = [ "all" ]){
+  constructor(socketURL, occasionId, tags = [ "all" ], playerLabel = ""){
     super()
     this.socketURL = socketURL
     this.occasionId = occasionId
-    this.guid = uuid()
+    this.guid = playerLabel + "|" + uuid() 
     this.tags = tags
     this.connected = false
     this.socket
@@ -18,7 +18,7 @@ class CohortClientSession extends EventEmitter {
 
       if(!this.tags.includes("all")){
         console.log("Adding default tag 'all' to Cohort session")
-        tags.push("all")
+        this.tags.push("all")
       }
 
       try {
@@ -70,6 +70,15 @@ class CohortClientSession extends EventEmitter {
         } else if(this.connected == false){
           return reject(msg)
         }
+        
+        if(msg.dataIdentifier !== undefined){
+          if(msg.dataIdentifier == "client_pong"){
+            if(msg.clientGuid !== undefined && msg.clientGuid == this.guid){
+              this.emit('dataReceived', msg)
+            }
+          }
+          return
+        }
 
         let cohortCue
         try {
@@ -93,8 +102,8 @@ class CohortClientSession extends EventEmitter {
       throw new Error("message does not include 'cueNumber' field")
     }
     
-    if(msg.mediaDomain !== 0 && msg.mediaDomain !== 3 && msg.mediaDomain !== 4){
-      throw new Error("Cohort for web browsers only supports audio cues (mediaDomain: 0), text cues (mediaDomain: 3), and lighting cues (mediaDomain: 4)")
+    if(msg.mediaDomain !== 0 && msg.mediaDomain !== 3){
+      throw new Error("Cohort for web browsers only supports audio cues (mediaDomain: 0) and text cues (mediaDomain: 3)")
     }
 
     if(msg.cueAction != 0){
@@ -113,6 +122,10 @@ class CohortClientSession extends EventEmitter {
     }
 
     return msg
+  }
+
+  send(object){
+    this.socket.send(JSON.stringify(object))
   }
 }
 
