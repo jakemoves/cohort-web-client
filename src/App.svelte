@@ -2,6 +2,7 @@
 	// import Cookies from 'js-cookie'
 	import Event from './Event.svelte'
 	import CohortClientSession from './CHClientSession.js'
+	import Slider from './Slider.svelte'
 	import queryString from 'query-string'
 	
 	
@@ -14,16 +15,12 @@
 	switch(environment){
 		case "local":
 			cohortSocketURL = 'ws://localhost:3000/sockets'
-			mediaUrlPrefix = 'media/sound/'
 			break
 		case "dev": 
 			cohortSocketURL = 'ws://jakemoves-old.local:3000/sockets'
-			mediaUrlPrefix = 'media/sound/'
-			// mediaUrlPrefix = 'https://overhear-winter-2019.s3.ca-central-1.amazonaws.com/'
 			break
 		case "prod":
-			cohortSocketURL = 'wss://new.cohort.rocks/sockets'
-			mediaUrlPrefix = 'https://overhear-winter-2019.s3.ca-central-1.amazonaws.com/'
+			cohortSocketURL = 'wss://otm.cohort.rocks/sockets'
 			break
 		default:
 			throw new Error("invalid 'environment' value")
@@ -43,6 +40,14 @@
 
 	let cohortOccasion = 14
 	let connectedToCohortServer = false
+	let selectedOption = ""
+	$: cueForSelectedOption = {
+		mediaDomain: 3,
+		cueNumber: 1,
+		cueAction: 0,
+		targetTags: ["stage_manager"],
+		cueContent: selectedOption
+	}
 
 	// on text cue
 	$: latestTextCueContent = ""
@@ -109,18 +114,18 @@
 	cohortSession.init()
 
 	const onOptionSelected = function(option){
-
-      fetch("https://new.cohort.rocks/api/v2/occasions/" + cohortOccasion + "/broadcast", {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldl91c2VyIiwiaWF0IjoxNTgzNjExNzk2fQ.k_9oasZ-c3-gvMKOJAHcN9Q56cKkhdeJiU2DlKhCuc4'},
-        body: JSON.stringify({
-					mediaDomain: 3,
-					cueNumber: 1,
-					cueAction: 0,
-					targetTags: ["stage_manager"],
-					cueContent: option
-				})
-      })
+		selectedOption = option
+      // fetch("https://new.cohort.rocks/api/v2/occasions/" + cohortOccasion + "/broadcast", {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json', 'Authorization': 'JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldl91c2VyIiwiaWF0IjoxNTgzNjExNzk2fQ.k_9oasZ-c3-gvMKOJAHcN9Q56cKkhdeJiU2DlKhCuc4'},
+      //   body: JSON.stringify({
+			// 		mediaDomain: 3,
+			// 		cueNumber: 1,
+			// 		cueAction: 0,
+			// 		targetTags: ["stage_manager"],
+			// 		cueContent: option
+			// 	})
+      // })
 	}
 	/*
 	 *    End Cohort
@@ -313,6 +318,8 @@
 			<!-- </li> -->
 		<!-- </ul> -->
 	</div>
+
+	<Slider serverURL={"https://otm.cohort.rocks/api/v2"} focusedOccasionID={14} broadcastStatus={"unsent"} sliderCue={cueForSelectedOption}></Slider>
 
 	<div class="row mt-4">
 		<div class="col text-center">
