@@ -25,7 +25,7 @@ let broadcastResults;
     try {
       fetch(serverURL + "/occasions/" + focusedOccasionID + "/broadcast", {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldl91c2VyIiwiaWF0IjoxNTgzNjExNzk2fQ.k_9oasZ-c3-gvMKOJAHcN9Q56cKkhdeJiU2DlKhCuc4'},
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Iml0aW5lcmFyeV9wbGF5ZXIiLCJpYXQiOjE1OTc5NjgzMjV9._jhynu_UZMCwm0z759twx726_G2J1cVt2tUkNHPVQ6c'},
         body: JSON.stringify(sliderCue)
       })
       .then( response => {
