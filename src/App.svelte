@@ -38,7 +38,7 @@
 	}
 
 	
-	let playerLabel = "", playerSleepHours = 10
+	let playerLabel = "", playerSleepHours = null
 	let didSubmitPlayerInfoForm = false
 
 	const onSubmitPlayerInfoForm = function(){
@@ -95,7 +95,7 @@
 			cohortTags.push(grouping)
 		}
 
-	 	cohortSession = new CohortClientSession(cohortSocketURL, cohortOccasion, cohortTags, playerLabel)
+	 	cohortSession = new CohortClientSession(cohortSocketURL, cohortOccasion, cohortTags, playerLabel, playerSleepHours)
 
 		cohortSession.on('connected', () => {
 			connectedToCohortServer = true
@@ -341,7 +341,7 @@
 						<label for="playerLabel">How many hours of sleep did you get last night?</label>
 						<input type="number" min="0" step="1" id="playerSleepHours" name="playerSleepHours" bind:value={playerSleepHours}>
 					</div>	
-					<button class="btn btn-outline-primary" disabled={ playerLabel == "" || playerSleepHours == "" } on:click={ onSubmitPlayerInfoForm }>Submit</button>
+					<button class="btn btn-outline-primary" disabled={ playerLabel == "" || playerSleepHours == null } on:click={ onSubmitPlayerInfoForm }>Submit</button>
 				</form>
 			{:else}
 				<p>
