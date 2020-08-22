@@ -38,11 +38,11 @@
 	}
 
 	
-	let playerLabel = ""
-	let didSubmitPlayerLabel = false
+	let playerLabel = "", playerSleepHours = 10
+	let didSubmitPlayerInfoForm = false
 
-	const onSubmitPlayerLabel = function(){
-		didSubmitPlayerLabel = true
+	const onSubmitPlayerInfoForm = function(){
+		didSubmitPlayerInfoForm = true
 		startCohort()
 	}
 
@@ -104,7 +104,7 @@
 				const payload = { action: "client_ping", clientGuid: cohortSession.guid }
 				cohortSession.send(payload)
 				connectedToCohortServer = false
-			}, 5000)
+			}, 10000)
 		})
 
 		cohortSession.on('disconnected', (message) => {
@@ -331,13 +331,17 @@
 <div class="container">
 	<div class="row">
 		<div class="col">
-			{#if !didSubmitPlayerLabel}
+			{#if !didSubmitPlayerInfoForm}
 				<form>
 					<div class="form-group">
-						<label for="playerLabel">Tell us your first name:</label>
+						<label for="playerLabel">Tell us your name on Zoom:</label>
 						<input type="text" id="playerLabel" name="playerLabel" bind:value={playerLabel}>
 					</div>	
-					<button class="btn btn-outline-primary" disabled={ playerLabel == "" } on:click={ onSubmitPlayerLabel }>Submit</button>
+					<div class="form-group">
+						<label for="playerLabel">How many hours of sleep did you get last night?</label>
+						<input type="number" min="0" step="1" id="playerSleepHours" name="playerSleepHours" bind:value={playerSleepHours}>
+					</div>	
+					<button class="btn btn-outline-primary" disabled={ playerLabel == "" || playerSleepHours == "" } on:click={ onSubmitPlayerInfoForm }>Submit</button>
 				</form>
 			{:else}
 				<p>
