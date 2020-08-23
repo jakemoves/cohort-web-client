@@ -5,6 +5,8 @@
 
 <!-- Slider for triggering cues -->
 <script>
+import { createEventDispatcher } from 'svelte';
+const dispatch = createEventDispatcher();
 // import { serverURL } from './ServerURLstore.js';
 // import { focusedOccasionID } from './UpdateUIstore.js';
 
@@ -49,6 +51,7 @@ let broadcastResults;
             } else {
               broadcastStatus = "partial-success"
             }
+            dispatch('message', { broadcastStatus: broadcastStatus})
           })
         } else {
           response.text().then( errorMessage => {
@@ -59,6 +62,7 @@ let broadcastResults;
             broadcastResults = errorMessage
             broadcastStatus = "error"
             console.log('error on request: ' + errorMessage)
+            dispatch('message', { broadcastStatus: broadcastStatus})
           })
         }
       }).catch( error => {
@@ -66,7 +70,7 @@ let broadcastResults;
         event.target.value = 0
         broadcastResults = errorMessage
         broadcastStatus = "error"
-        
+        dispatch('message', { broadcastStatus: broadcastStatus})
       })
     } catch (e) {
       event.target.disabled = false
@@ -75,6 +79,7 @@ let broadcastResults;
       broadcastResults = errorMessage
       broadcastStatus = "error"
       console.log(e.message)
+      dispatch('message', { broadcastStatus: broadcastStatus})
     } 
   }
 };

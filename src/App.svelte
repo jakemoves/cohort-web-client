@@ -47,6 +47,8 @@
 		didSubmitPlayerInfoForm = true
 		startCohort()
 	}
+	
+	$: sliderBroadcastStatus = "unsent"
 
 	let cohortOccasion = 14
 	let connectedToCohortServer = false
@@ -184,6 +186,17 @@
 			// 		cueContent: option
 			// 	})
       // })
+	}
+
+	let showBroadcastSuccess = false
+	const onBroadcastResult = function(event){
+		const msg = event.detail
+		if(msg.broadcastStatus !== undefined && (msg.broadcastStatus == "full-success" || msg.broadcastStatus == "partial-success")){
+			latestTextCueContent = ""
+			selectedOption = ""
+			showBroadcastSuccess = true
+			setTimeout(() => { showBroadcastSuccess = false}, 5000)
+		}
 	}
 
 	const delay = function(time){ // time in ms
@@ -427,7 +440,11 @@
 	<div class="row">
 		<div class="col">
 			{#if selectedOption != ""}
-				<Slider serverURL={"https://otm.cohort.rocks/api/v2"} focusedOccasionID={14} broadcastStatus={"unsent"} sliderCue={cueForSelectedOption}></Slider>
+				<Slider serverURL={"https://otm.cohort.rocks/api/v2"} focusedOccasionID={14} broadcastStatus={sliderBroadcastStatus} sliderCue={cueForSelectedOption} on:message={onBroadcastResult}></Slider>
+			{/if}
+
+			{#if showBroadcastSuccess}
+				<p in:fade={{duration: 100}} out:fade={{duration: 1000}}>Your choice was submitted</p>
 			{/if}
 
 			<div class="row mt-4">
