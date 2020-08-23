@@ -173,6 +173,7 @@
 		}
 	})()
 
+	let tellWasChosen = false
 	const onOptionSelected = function(option){
 		selectedOption = option
       // fetch("https://new.cohort.rocks/api/v2/occasions/" + cohortOccasion + "/broadcast", {
@@ -185,7 +186,7 @@
 			// 		targetTags: ["stage_manager"],
 			// 		cueContent: option
 			// 	})
-      // })
+			// })
 	}
 
 	let showBroadcastSuccess = false
@@ -193,6 +194,11 @@
 		const msg = event.detail
 		if(msg.broadcastStatus !== undefined && (msg.broadcastStatus == "full-success" || msg.broadcastStatus == "partial-success")){
 			latestTextCueContent = ""
+			console.log(selectedOption)
+			if(selectedOption == "Tell"){
+				tellWasChosen = true
+			} else { tellWasChosen = false }
+
 			selectedOption = ""
 			showBroadcastSuccess = true
 			setTimeout(() => { showBroadcastSuccess = false}, 5000)
@@ -397,7 +403,7 @@
 						<input type="number" min="0" step="1" id="playerSleepHours" name="playerSleepHours" bind:value={playerSleepHours}>
 					</div>	
 					<div class="form-group">
-						<label for="playerActivity">What activity gives you calm and contentment?</label>
+						<label for="playerActivity">What's an activity that gives you calm and contentment?</label>
 						<input type="text" id="playerActivity" name="playerActivity" bind:value={playerActivity}>
 					</div>
 					<button class="btn btn-outline-primary" disabled={ playerLabel == "" || playerSleepHours == null || playerActivity == ""} on:click={ onSubmitPlayerInfoForm }>Submit</button>
@@ -413,6 +419,18 @@
 			{/if}
 		</div>
 	</div>
+
+	{#if optionButtonLabels.includes("Tell")}
+		<div class="row">
+			<div class="col">
+				<p>Dear Lucid Dreamers,<br/>
+					In the waking world, the patient you are with right now will be taken off life support at 0600.<br/>
+					You can decide whether or not to tell them.
+				</p>
+			</div>
+		</div>
+	{/if}
+	
 	<div class="row">
 		<div class="col">
 		<!-- <Event 
@@ -436,6 +454,14 @@
 		<!-- </ul> -->
 		</div>
 	</div>
+
+	{#if tellWasChosen }
+		<div class="row">
+			<div class="col">
+				<p>Please unmute your mic on Zoom and tell the patient: "I thought you should know, at 6am, your life will come to an end."</p>
+			</div>
+		</div>
+	{/if}
 
 	<div class="row">
 		<div class="col">
