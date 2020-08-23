@@ -1,4 +1,6 @@
 <script>
+	import { fade } from 'svelte/transition'
+	import { onMount } from 'svelte'
 	// import Cookies from 'js-cookie'
 	import Event from './Event.svelte'
 	import CohortClientSession from './CHClientSession.js'
@@ -38,7 +40,7 @@
 	}
 
 	
-	let playerLabel = "", playerSleepHours = null
+	let playerLabel = "", playerSleepHours = null, playerActivity = ""
 	let didSubmitPlayerInfoForm = false
 
 	const onSubmitPlayerInfoForm = function(){
@@ -81,7 +83,7 @@
 		body.setAttribute("style", "background-color: " + backgroundColor)
 	}
 	
-	let cohortTags, cohortSession, clientPingInterval
+	let cohortTags, cohortSession, clientPingInterval, connectedOnce
 
 	const startCohort = function(){
 		// get grouping info (tags) from URL
@@ -97,9 +99,12 @@
 
 	 	cohortSession = new CohortClientSession(cohortSocketURL, cohortOccasion, cohortTags, playerLabel, playerSleepHours)
 
+		connectedOnce = false
 		cohortSession.on('connected', () => {
 			connectedToCohortServer = true
 			console.log('connected to cohort server')
+			connectedOnce = true
+			showReconnectButton = false
 			clientPingInterval = setInterval(function(){
 				const payload = { action: "client_ping", clientGuid: cohortSession.guid }
 				cohortSession.send(payload)
@@ -114,6 +119,7 @@
 		})
 		cohortSession.on('dataReceived', data => {
 			if(data.dataIdentifier == "client_pong"){
+				console.log("client-initiated ping/pong successful")
 				connectedToCohortServer = true
 			}
 		})
@@ -144,6 +150,26 @@
 		cohortSession.init()
 	}
 	
+	const onReconnect = async function(){
+		try {
+      cohortSession.socket = await cohortSession.connect()
+    }
+    catch( error ) {
+			return reject(error) 
+    }
+	}
+
+	let showReconnectButton = false
+	$: (async () => {
+		if(connectedOnce && connectionState == "inactive"){
+			await delay(1000)
+			if(connectionState == "inactive"){
+				showReconnectButton = true
+			} else {
+				showReconnectButton = false
+			}
+		}
+	})()
 
 	const onOptionSelected = function(option){
 		selectedOption = option
@@ -159,6 +185,11 @@
 			// 	})
       // })
 	}
+
+	const delay = function(time){ // time in ms
+		return new Promise( resolve => setTimeout(resolve, time))
+	}
+
 	/*
 	 *    End Cohort
 	 */
@@ -317,6 +348,17 @@
 		margin-right: 1rem;
 		margin-bottom: 1rem;
 	}
+/* 
+	.btn-reconnect-active {
+		visibility: hidden;
+		opacity: 0;
+		transition: opacity 1s linear 1s;
+	}
+
+	.btn-reconnect-inactive {
+		visibility: visible;
+		opacity: 1;
+	} */
 </style>
 
 <svelte:head>
@@ -341,12 +383,19 @@
 						<label for="playerLabel">How many hours of sleep did you get last night?</label>
 						<input type="number" min="0" step="1" id="playerSleepHours" name="playerSleepHours" bind:value={playerSleepHours}>
 					</div>	
-					<button class="btn btn-outline-primary" disabled={ playerLabel == "" || playerSleepHours == null } on:click={ onSubmitPlayerInfoForm }>Submit</button>
+					<div class="form-group">
+						<label for="playerActivity">What activity gives you calm and contentment?</label>
+						<input type="text" id="playerActivity" name="playerActivity" bind:value={playerActivity}>
+					</div>
+					<button class="btn btn-outline-primary" disabled={ playerLabel == "" || playerSleepHours == null || playerActivity == ""} on:click={ onSubmitPlayerInfoForm }>Submit</button>
 				</form>
 			{:else}
 				<p>
 					Player: { playerLabel } <br/>
 					Connection: <WebsocketConnectionIndicator status={connectionState}/>
+					{#if showReconnectButton}
+						<button class={"btn btn-link btn-reconnect-" + connectionState} on:click={onReconnect}>Reconnect</button>
+					{/if}
 				</p>
 			{/if}
 		</div>

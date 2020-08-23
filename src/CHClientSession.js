@@ -50,6 +50,7 @@ class CohortClientSession extends EventEmitter {
 
       socket.addEventListener('close', (msg) => {
         console.log('connection closed with error ' + msg.code + ': ' + msg.reason)
+        this.connected = false
         this.emit('disconnected', { code: msg.code, reason: msg.reason })
       })
       
@@ -60,7 +61,7 @@ class CohortClientSession extends EventEmitter {
 
       socket.addEventListener('message', (message) => {
         const msg = JSON.parse(message.data)
-        // console.log(msg)
+        console.log(msg)
         
         // finish handshake
         if(this.connected == false && msg.response == "success"){
