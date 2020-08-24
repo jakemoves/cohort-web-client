@@ -99,7 +99,7 @@
 			cohortTags.push(grouping)
 		}
 
-	 	cohortSession = new CohortClientSession(cohortSocketURL, cohortOccasion, cohortTags, playerLabel, playerSleepHours)
+	 	cohortSession = new CohortClientSession(cohortSocketURL, cohortOccasion, cohortTags, playerLabel, playerSleepHours, playerActivity)
 
 		connectedOnce = false
 		cohortSession.on('connected', () => {
@@ -143,6 +143,9 @@
 			if(cueMatchesTarget){
 				if(cue.mediaDomain == 3 && cue.cueContent !== undefined){
 					latestTextCueContent = cue.cueContent
+					if(tellWasChosen == true){
+						showTellInstructions = true
+					}
 				} else if(cue.mediaDomain == 4 && cue.cueContent !== undefined){
 					backgroundColor = cue.cueContent
 				}
@@ -174,6 +177,7 @@
 	})()
 
 	let tellWasChosen = false
+	let showTellInstructions = false
 	const onOptionSelected = function(option){
 		selectedOption = option
       // fetch("https://new.cohort.rocks/api/v2/occasions/" + cohortOccasion + "/broadcast", {
@@ -378,6 +382,13 @@
 		visibility: visible;
 		opacity: 1;
 	} */
+
+	.tell-message .close-button {
+		position: absolute;
+		top: -30px;
+		right: 0;
+		text-align: right;
+	}
 </style>
 
 <svelte:head>
@@ -455,10 +466,17 @@
 		</div>
 	</div>
 
-	{#if tellWasChosen }
+	{#if showTellInstructions }
 		<div class="row">
 			<div class="col">
-				<p>Please unmute your mic on Zoom and tell the patient: "I thought you should know, at 6am, your life will come to an end."</p>
+				<p class="tell-message">
+					Please unmute your mic on Zoom and tell the patient: <br/>
+					"I thought you should know, at 6:00 AM, your life will come to an end."
+					<button class="btn btn-link close-button" on:click={e => {
+						tellWasChosen = false 
+						showTellInstructions = false
+					}}>[close this message]</button>
+				</p>
 			</div>
 		</div>
 	{/if}
