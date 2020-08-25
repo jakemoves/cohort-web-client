@@ -62,14 +62,14 @@
 	let selectedOption = ""
 	$: cueForSelectedOption = {
 		mediaDomain: 3,
-		cueNumber: 1,
+		cueNumber: 2,
 		cueAction: 0,
-		targetTags: ["stage_manager"],
+		targetTags: ["all"],
 		cueContent: selectedOption
 	}
 
 	// on text cue
-	$: latestTextCueContent = ""
+	let latestTextCueContent = ""
 	$: splitTextCueContent = latestTextCueContent.split("|")
 	let optionButtonLabels
 	$: if(splitTextCueContent[0] != ""){
@@ -142,9 +142,13 @@
 
 			if(cueMatchesTarget){
 				if(cue.mediaDomain == 3 && cue.cueContent !== undefined){
-					latestTextCueContent = cue.cueContent
-					if(tellWasChosen == true){
-						showTellInstructions = true
+					if(cue.cueNumber == 1){
+						latestTextCueContent = cue.cueContent
+						if(tellWasChosen == true){
+							showTellInstructions = true
+						}
+					} else if(cue.cueNumber == 2){
+						latestTextCueContent = ""
 					}
 				} else if(cue.mediaDomain == 4 && cue.cueContent !== undefined){
 					backgroundColor = cue.cueContent
