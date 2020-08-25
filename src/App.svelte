@@ -118,6 +118,7 @@
 			connectedToCohortServer = false
 			console.log(connectedToCohortServer)
 			clearInterval(clientPingInterval)
+			latestTextCueContent = ""
 		})
 		cohortSession.on('dataReceived', data => {
 			if(data.dataIdentifier == "client_pong"){
@@ -410,7 +411,7 @@
 			{#if !didSubmitPlayerInfoForm}
 				<form>
 					<div class="form-group">
-						<label for="playerLabel">Tell us your name on Zoom:</label>
+						<label for="playerLabel">Tell us your first name:</label>
 						<input type="text" id="playerLabel" name="playerLabel" bind:value={playerLabel}>
 					</div>	
 					<div class="form-group">
