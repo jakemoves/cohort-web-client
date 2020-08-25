@@ -144,11 +144,11 @@
 				if(cue.mediaDomain == 3 && cue.cueContent !== undefined){
 					if(cue.cueNumber == 1){
 						latestTextCueContent = cue.cueContent
+					} else if(cue.cueNumber == 2){
+						latestTextCueContent = ""
 						if(tellWasChosen == true){
 							showTellInstructions = true
 						}
-					} else if(cue.cueNumber == 2){
-						latestTextCueContent = ""
 					}
 				} else if(cue.mediaDomain == 4 && cue.cueContent !== undefined){
 					backgroundColor = cue.cueContent
@@ -470,7 +470,7 @@
 		</div>
 	</div>
 
-	{#if showTellInstructions }
+	<!-- {#if showTellInstructions }
 		<div class="row">
 			<div class="col">
 				<p class="tell-message">
@@ -483,7 +483,7 @@
 				</p>
 			</div>
 		</div>
-	{/if}
+	{/if} -->
 
 	<div class="row">
 		<div class="col">
