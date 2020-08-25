@@ -119,6 +119,7 @@
 			console.log(connectedToCohortServer)
 			clearInterval(clientPingInterval)
 			latestTextCueContent = ""
+			selectedOption = "" // starts to look like a reset function
 		})
 		cohortSession.on('dataReceived', data => {
 			if(data.dataIdentifier == "client_pong"){
