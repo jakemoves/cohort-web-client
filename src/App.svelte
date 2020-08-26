@@ -48,6 +48,7 @@
 	
 	let playerLabel = "", playerSleepHours = null, playerActivity = ""
 	let didSubmitPlayerInfoForm = false
+	let localClearButtonTimeout
 
 	const onSubmitPlayerInfoForm = function(){
 		didSubmitPlayerInfoForm = true
@@ -153,12 +154,19 @@
 
 			if(cueMatchesTarget){
 				if(cue.mediaDomain == 3 && cue.cueContent !== undefined){
+					if(localClearButtonTimeout !== undefined){
+						clearTimeout(localClearButtonTimeout)
+					}					
+					
 					if(cue.cueNumber == 1){
 						alertSound.play()
 						bodyEl.classList.remove('dark')
 						latestTextCueContent = cue.cueContent
 						await delay(1000)
 						bodyEl.classList.add('dark')
+						localClearButtonTimeout = setTimeout(() => { 
+							if(latestTextCueContent != ""){ latestTextCueContent = "" }
+						}, 40000) // hides buttons in case this player misses that cue
 					} else if(cue.cueNumber == 2){
 						latestTextCueContent = ""
 						selectedOption = ""
@@ -510,7 +518,7 @@
 	{/if} -->
 
 	<div class="row">
-		<div class="col">
+		<div class="col-md-12">
 			{#if selectedOption != ""}
 				<Slider serverURL={"https://otm.cohort.rocks/api/v2"} focusedOccasionID={14} broadcastStatus={sliderBroadcastStatus} sliderCue={cueForSelectedOption} on:message={onBroadcastResult}></Slider>
 			{/if}

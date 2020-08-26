@@ -109,6 +109,9 @@ label{
   border-radius: 50px;
   border: 0px solid #010101; }
 
+.slider-container {
+  margin-bottom: 6rem;
+}
 .slider-container.status-unsent  #cue-control-go::-webkit-slider-runnable-track {
   background: #007bff;
 }
@@ -226,25 +229,25 @@ label{
 #cue-control-go:focus::-ms-fill-upper {
   background: #367ebd; }
 
-  /* end of Slider style */
+/* end of Slider style */
 
-    
-    </style>
- 
-    <div class="row mt-3">
-      <div class="col-md-12">
-        <div class="slider-container status-{broadcastStatus} text-center">
-          <label for="cue-control-go">Drag slider to the right to confirm selection</label>
-          <input type="range" min="0" max="100" value="0" id="cue-control-go" onchange=onCueSliderInput(event)>
-          <div class="alert alert-success text-center">
-            {broadcastResults}
-          </div>
-          <div class="alert alert-warning text-center">
-            {broadcastResults}
-          </div>
-          <div class="alert alert-danger text-center">
-            {broadcastResults}
-          </div>
-        </div>
+  
+</style>
+
+<!-- <div class="row mt-3 mb-4">
+  <div class="col-md-12"> -->
+    <div class="slider-container status-{broadcastStatus} text-center">
+      <label for="cue-control-go">Drag slider to the right to confirm selection</label>
+      <input type="range" min="0" max="100" value="0" id="cue-control-go" onchange=onCueSliderInput(event)>
+      <div class="alert alert-success text-center">
+        {broadcastResults}
+      </div>
+      <div class="alert alert-warning text-center">
+        {broadcastResults}
+      </div>
+      <div class="alert alert-danger text-center">
+        {broadcastResults}
       </div>
     </div>
+  <!-- </div>
+</div> -->
