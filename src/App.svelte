@@ -519,13 +519,13 @@
 				<p in:fade={{duration: 100}} out:fade={{duration: 1000}}>Your choice was submitted</p>
 			{/if}
 
-			<div class="row mt-4">
+			<!-- <div class="row mt-4">
 				<div class="col text-center">
 				{#if cohortSession !== undefined}
 					<p class="small">groups: {#each cohortSession.tags as tag}<span class="grouping">{tag}</span>, {/each}</p>
 				{/if}
 				</div>
-			</div>
+			</div> -->
 		</div>
 	</div>
 </div>
