@@ -1,5 +1,7 @@
 <script>
+	import { Howl, Howler } from 'howler'
 	import { fade } from 'svelte/transition'
+	import { sineInOut } from 'svelte/easing'
 	import { onMount } from 'svelte'
 	// import Cookies from 'js-cookie'
 	import Event from './Event.svelte'
@@ -39,12 +41,17 @@
 		}]
 	}
 
+	let alertSound = new Howl({
+    src: './sounds/ding2.mp3'
+  })
+
 	
 	let playerLabel = "", playerSleepHours = null, playerActivity = ""
 	let didSubmitPlayerInfoForm = false
 
 	const onSubmitPlayerInfoForm = function(){
 		didSubmitPlayerInfoForm = true
+		alertSound.play()
 		startCohort()
 	}
 	
@@ -79,11 +86,13 @@
 	}
 
 	// on lighting cue
-	$: backgroundColor = "rgb(255, 240, 240)"
-	$: {
-		let body = document.getElementsByTagName("body")[0]
-		body.setAttribute("style", "background-color: " + backgroundColor)
-	}
+	$: backgroundColor = "rgb(255, 255, 255)"
+	let bodyEl = document.getElementsByTagName("body")[0]
+
+	// $: {
+	// 	let body = document.getElementsByTagName("body")[0]
+	// 	body.setAttribute("style", "background-color: " + backgroundColor)
+	// }
 	
 	let cohortTags, cohortSession, clientPingInterval, connectedOnce
 
@@ -127,7 +136,7 @@
 				connectedToCohortServer = true
 			}
 		})
-		cohortSession.on('cueReceived', (cue) => {
+		cohortSession.on('cueReceived', async (cue) => {
 			console.log('cue received:')
 			console.log(cue)
 
@@ -145,9 +154,14 @@
 			if(cueMatchesTarget){
 				if(cue.mediaDomain == 3 && cue.cueContent !== undefined){
 					if(cue.cueNumber == 1){
+						alertSound.play()
+						bodyEl.classList.remove('dark')
 						latestTextCueContent = cue.cueContent
+						await delay(1000)
+						bodyEl.classList.add('dark')
 					} else if(cue.cueNumber == 2){
 						latestTextCueContent = ""
+						selectedOption = ""
 						if(tellWasChosen == true){
 							showTellInstructions = true
 						}
@@ -401,8 +415,15 @@
 	<link rel="stylesheet" href="bootstrap/bootstrap.css">
 	<style>
 		body {
-			transition: background-color 5s ease-in-out;
+			/* transition: background-color 5s ease-in-out; */
+			background-color: rgb(255, 255, 255);
+			transition: background-color 0.5s ease-out;
 		}
+		body.dark {
+			background-color: rgb(0,0,0);
+			transition: background-color 30s linear;
+		}
+		
 	</style>
 </svelte:head>
 
@@ -423,7 +444,7 @@
 						<label for="playerActivity">What's an activity that gives you calm and contentment?</label>
 						<input type="text" id="playerActivity" name="playerActivity" bind:value={playerActivity}>
 					</div>
-					<button class="btn btn-outline-primary" disabled={ playerLabel == "" || playerSleepHours == null || playerActivity == ""} on:click={ onSubmitPlayerInfoForm }>Submit</button>
+					<button class="btn btn-dark" disabled={ playerLabel == "" || playerSleepHours == null || playerActivity == ""} on:click={ onSubmitPlayerInfoForm }>Submit</button>
 				</form>
 			{:else}
 				<p>
@@ -459,10 +480,11 @@
 		<!-- itinerary UI goes here -->
 		<!-- <ul class="d-flex flex-wrap mt-8"> -->
 			<!-- <li class="mb-4"> -->
-			{#each optionButtonLabels as buttonLabel}
+			{#each optionButtonLabels as buttonLabel, index}
 				<button 
 					type="button" 
-					class="btn btn-outline-primary text-center"
+					class="btn btn-dark text-center"
+					transition:fade={{duration: 500, delay: index * 75, easing: sineInOut}}
 					on:click={e => onOptionSelected(e.target.innerHTML)}>
 					{buttonLabel}
 				</button>
