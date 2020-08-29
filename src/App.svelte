@@ -267,6 +267,27 @@
 		}
 	}
 
+	const onRadioChangeStation = function(event){
+		showRadioSwitch = false
+		setTimeout( () => { showRadioSwitch = true }, 30000)
+		const radioCue = {
+			mediaDomain: 0,
+			cueNumber: 2,
+			cueAction: 0,
+			targetTags: ["stage_manager"]
+		}
+		try {
+			fetch("https://otm.cohort.rocks/api/v2" + "/occasions/" + 14 + "/broadcast", {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json', 'Authorization': 'JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Iml0aW5lcmFyeV9wbGF5ZXIiLCJpYXQiOjE1OTc5NjgzMjV9._jhynu_UZMCwm0z759twx726_G2J1cVt2tUkNHPVQ6c'},
+				body: JSON.stringify(radioCue)
+			})
+		}
+		catch (error){
+			console.log(error)
+		}
+	}
+
 	const delay = function(time){ // time in ms
 		return new Promise( resolve => setTimeout(resolve, time))
 	}
@@ -372,6 +393,10 @@
 							radioOn = false
 							onRadioSwitch(e)
 						}}>Turn off radio</button>
+
+						<button class="btn btn-secondary" type="button" on:click={ (e) => {
+							onRadioChangeStation(e)
+						}}>Change radio station</button>
 				</div>
 			{:else if !showRadioSwitch && didSendOneOption}
 				<p transition:fade={{duration: 500, delay: 500}}>The radio switch can't be used again yet.</p>
