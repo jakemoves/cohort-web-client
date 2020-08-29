@@ -231,7 +231,10 @@
 				tellWasChosen = true
 			} else { tellWasChosen = false }
 
-			showRadioSwitch = true
+			if(!didSendOneOption){
+				didSendOneOption = true
+				setTimeout(()=>{showRadioSwitch = true}, 10000)
+			}
 
 			selectedOption = ""
 			showBroadcastSuccess = true
@@ -240,12 +243,12 @@
 	}
 
 	let showRadioSwitch = false
-	let disableRadioSwitch = false
+	let didSendOneOption = false
 	let radioOn = false
 	const onRadioSwitch = function(event){
 		console.log("User set radioOn to " + radioOn)
-		disableRadioSwitch = true
-		setTimeout( () => { disableRadioSwitch = false }, 30000)
+		showRadioSwitch = false
+		setTimeout( () => { showRadioSwitch = true }, 30000)
 		const radioCue = {
 			mediaDomain: 0,
 			cueNumber: 1,
@@ -263,12 +266,6 @@
 			console.log(error)
 		}
 	}
-	
-
-	// const onRadioSwitch = function(){
-	// 	disableRadioSwitch = true
-	// 	setTimeout(() => { disableRadioSwitch = false }, 15000)
-	// }
 
 	const delay = function(time){ // time in ms
 		return new Promise( resolve => setTimeout(resolve, time))
@@ -362,24 +359,25 @@
 		</div>
 	</div>
 
-	{#if showRadioSwitch}
-		<div class="row" transition:fade={{duration: 500}}>
-			<div class="col">
-				<div class="form-group">
-					Radio: 
+	<div class="row" >
+		<div class="col">
+			{#if showRadioSwitch}
+				<div class="form-group" transition:fade={{duration: 500, delay:500}}>
 					<button class="btn btn-secondary" type="button" on:click={ (e) => {
 						radioOn = true
 						onRadioSwitch(e)
-					}} disabled={ disableRadioSwitch }>Turn on</button>
+					}}>Turn on radio</button>
 
 					<button class="btn btn-secondary" type="button" on:click={ (e) => {
 							radioOn = false
 							onRadioSwitch(e)
-						}} disabled={ disableRadioSwitch }>Turn off</button>
+						}}>Turn off radio</button>
 				</div>
-			</div>
+			{:else if !showRadioSwitch && didSendOneOption}
+				<p transition:fade={{duration: 500, delay: 500}}>The radio switch can't be used again yet.</p>
+			{/if}
 		</div>
-	{/if}
+	</div>
 
 	{#if optionButtonLabels.includes("Tell")}
 		<div class="row">
