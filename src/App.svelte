@@ -1,5 +1,6 @@
 <script>
-let audioUrl = './sounds/intro-score.mp3'
+let audioUrl = "." + "/"/*window.location.pathname*/ + 'sounds/intro-score.mp3'
+console.log(audioUrl)
 let isPaused = true
 let isLoaded
 let audioPlayer, playButton
