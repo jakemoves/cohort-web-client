@@ -59,7 +59,9 @@ onMount( () => {
 	<button 
 		type="button" 
 		on:click={onBtnPlay} 
-		class="btn btn-outline btn-outline-secondary btn-block">
+		class="btn btn-outline btn-block"
+    class:btn-outline-success={!showResumeControls}
+    class:btn-outline-secondary={showResumeControls} >
 		Play{#if showResumeControls}&nbsp;from beginning{/if}
 	</button>
 	
