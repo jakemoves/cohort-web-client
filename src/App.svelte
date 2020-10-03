@@ -90,10 +90,10 @@
 	$: backgroundColor = "rgb(255, 255, 255)"
 	let bodyEl = document.getElementsByTagName("body")[0]
 
-	// $: {
-	// 	let body = document.getElementsByTagName("body")[0]
-	// 	body.setAttribute("style", "background-color: " + backgroundColor)
-	// }
+	$: {
+		let body = document.getElementsByTagName("body")[0]
+		body.setAttribute("style", "background-color: " + backgroundColor)
+	}
 	
 	let cohortTags, cohortSession, clientPingInterval, connectedOnce
 
