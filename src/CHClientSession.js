@@ -7,10 +7,14 @@ class CohortClientSession extends EventEmitter {
     super()
     this.socketURL = socketURL
     this.occasionId = occasionId
-    this.guid = playerLabel + "|" + playerSleepHours + "|" + playerProposedActivity + "|" + uuid() 
+    this.guid = uuid() 
     this.tags = tags
     this.connected = false
+    this.connectedOnce = false
     this.socket
+    this.pingFrequency = 10000 // 10 seconds
+    this.clientPingInterval
+    this.clientPingTimeoutNotification
   }
 
   init(){
@@ -50,6 +54,7 @@ class CohortClientSession extends EventEmitter {
 
       socket.addEventListener('close', (msg) => {
         console.log('connection closed with error ' + msg.code + ': ' + msg.reason)
+        clearInterval(clientPingInterval)
         this.connected = false
         this.emit('disconnected', { code: msg.code, reason: msg.reason })
       })
@@ -66,7 +71,18 @@ class CohortClientSession extends EventEmitter {
         // finish handshake
         if(this.connected == false && msg.response == "success"){
           this.connected = true
+          this.connectedOnce = true
           this.emit('connected')
+
+          this.clientPingInterval = setInterval(function(){
+            const payload = { action: "client_ping", clientGuid: cohortSession.guid }
+            socket.send(JSON.stringify(payload))
+            this.connected = false
+            this.clientPingTimeoutNotification = setTimeout(() => {
+              this.emit('disconnected')
+            }, this.pingFrequency)
+          }, this.pingFrequency)
+
           return resolve(socket)
         } else if(this.connected == false){
           return reject(msg)
@@ -75,7 +91,11 @@ class CohortClientSession extends EventEmitter {
         if(msg.dataIdentifier !== undefined){
           if(msg.dataIdentifier == "client_pong"){
             if(msg.clientGuid !== undefined && msg.clientGuid == this.guid){
-              this.emit('dataReceived', msg)
+              if(data.dataIdentifier == "client_pong"){
+                console.log("client-initiated ping/pong successful")
+                this.connected = true
+                clearTimeout(this.clientPingTimeoutNotification)
+              }
             }
           }
           return
