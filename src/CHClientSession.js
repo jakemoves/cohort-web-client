@@ -13,6 +13,7 @@ class CohortClientSession extends EventEmitter {
     this.connectedOnce = false
     this.socket
     this.pingFrequency = 10000 // 10 seconds
+    this.awaitingPong = false
     this.clientPingInterval
     this.clientPingTimeoutNotification
   }
@@ -54,7 +55,7 @@ class CohortClientSession extends EventEmitter {
 
       socket.addEventListener('close', (msg) => {
         console.log('connection closed with error ' + msg.code + ': ' + msg.reason)
-        clearInterval(clientPingInterval)
+        clearInterval(this.clientPingInterval)
         this.connected = false
         this.emit('disconnected', { code: msg.code, reason: msg.reason })
       })
@@ -66,7 +67,6 @@ class CohortClientSession extends EventEmitter {
 
       socket.addEventListener('message', (message) => {
         const msg = JSON.parse(message.data)
-        console.log(msg)
         
         // finish handshake
         if(this.connected == false && msg.response == "success"){
@@ -74,12 +74,18 @@ class CohortClientSession extends EventEmitter {
           this.connectedOnce = true
           this.emit('connected')
 
-          this.clientPingInterval = setInterval(function(){
-            const payload = { action: "client_ping", clientGuid: cohortSession.guid }
+          this.clientPingInterval = setInterval(() => {
+            const payload = { action: "client_ping", clientGuid: this.guid }
             socket.send(JSON.stringify(payload))
-            this.connected = false
+            this.awaitingPong = true
+
             this.clientPingTimeoutNotification = setTimeout(() => {
-              this.emit('disconnected')
+              if(this.awaitingPong){
+                this.connected = false
+                this.emit('disconnected')
+              } else {
+                throw new Error("Inconsistent connection state (awaitingPong: true)")
+              }
             }, this.pingFrequency)
           }, this.pingFrequency)
 
@@ -91,11 +97,9 @@ class CohortClientSession extends EventEmitter {
         if(msg.dataIdentifier !== undefined){
           if(msg.dataIdentifier == "client_pong"){
             if(msg.clientGuid !== undefined && msg.clientGuid == this.guid){
-              if(data.dataIdentifier == "client_pong"){
-                console.log("client-initiated ping/pong successful")
-                this.connected = true
-                clearTimeout(this.clientPingTimeoutNotification)
-              }
+              // console.log("client-initiated ping/pong successful")
+              this.awaitingPong = false
+              clearTimeout(this.clientPingTimeoutNotification)
             }
           }
           return
@@ -116,11 +120,11 @@ class CohortClientSession extends EventEmitter {
 
   validateCohortCue(msg) {
     if(msg.mediaDomain == null || msg.mediaDomain === undefined){
-      throw new Error("message does not include 'mediaDomain' field")
+      throw new Error("Cue does not include 'mediaDomain' field")
     }
 
     if(msg.cueNumber == null || msg.cueNumber === undefined){
-      throw new Error("message does not include 'cueNumber' field")
+      throw new Error("Cue does not include 'cueNumber' field")
     }
     
     if(msg.mediaDomain !== 0 && msg.mediaDomain !== 3 && msg.mediaDomain !== 4){
@@ -139,12 +143,21 @@ class CohortClientSession extends EventEmitter {
       }
     })
     if(!tagMatched){
-      throw new Error("Based on tags, this cue is not intended for this client, so we're not triggering it.")
+      console.log("Based on tags, this cue is not intended for this client, so we're not passing it along it.")
     }
 
     return msg
   }
 
+  async reconnect(){
+		try {
+      this.socket = await this.connect()
+    }
+    catch( error ) {
+			return reject(error) 
+    }
+  }
+  
   send(object){
     this.socket.send(JSON.stringify(object))
   }

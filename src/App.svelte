@@ -1,20 +1,14 @@
 <script>
-	import AudioPlayer from './AudioPlayer.svelte'
-	import { fade } from 'svelte/transition'
-	import { sineInOut } from 'svelte/easing'
-	import { onMount } from 'svelte'
-	// import Cookies from 'js-cookie'
-	import Event from './Event.svelte'
-	import CohortClientSession from './CHClientSession.js'
-	import Slider from './Slider.svelte'
-	import WebsocketConnectionIndicator from './WebsocketConnectionIndicator.svelte'
 	import queryString from 'query-string'
-	
+	import AudioPlayer from './AudioPlayer.svelte'
+	import { onMount } from 'svelte'
+	import CohortClientSession from './CHClientSession.js'
+	import WebsocketConnectionIndicator from './WebsocketConnectionIndicator.svelte'
 	
 	/*
 	 *    Prepare Cohort functionality (for live cues)
 	 */	
-	let environment = "prod" // can be local, dev, prod
+	let environment = "local" // can be local, dev, prod
 	let cohortSocketURL
 
 	switch(environment){
@@ -22,44 +16,17 @@
 			cohortSocketURL = 'ws://localhost:3000/sockets'
 			break
 		case "dev": 
-			cohortSocketURL = 'ws://jakemoves-old.local:3000/sockets'
+			cohortSocketURL = 'ws://[INSERT LOCAL IP ADDRESS]:3000/sockets'
 			break
 		case "prod":
-			cohortSocketURL = 'wss://otm.cohort.rocks/sockets'
+			cohortSocketURL = 'wss://cohort.rocks/sockets'
 			break
 		default:
 			throw new Error("invalid 'environment' value")
 	}
 
-	let itineraryEvent = {
-		eventId: 10,
-		episodes: [{
-			label: "default",
-			description: "",
-			number: 1,
-			cues: []
-		}]
-	}
-
-	let alertSound = new Howl({
-    src: './sounds/ding2.mp3'
-  })
-
-	
-	let playerLabel = "", playerSleepHours = null, playerActivity = ""
-	let didSubmitPlayerInfoForm = false
-	let localClearButtonTimeout
-
-	const onSubmitPlayerInfoForm = function(){
-		didSubmitPlayerInfoForm = true
-		alertSound.play()
-		startCohort()
-	}
-	
-	$: sliderBroadcastStatus = "unsent"
-
-	let cohortOccasion = 14
-	let connectedToCohortServer = false
+	let cohortOccasion = 8
+	let connectedToCohortServer
 	let connectionState = "unknown"
   $: {
     if(connectedToCohortServer === undefined){ connectionState = "unknown" }
@@ -67,135 +34,50 @@
     else if(connectedToCohortServer == false){ connectionState = "inactive"}
 	}
 	
-	let selectedOption = ""
-	$: cueForSelectedOption = {
-		mediaDomain: 3,
-		cueNumber: 2,
-		cueAction: 0,
-		targetTags: ["all"],
-		cueContent: selectedOption
-	}
+	let cohortTags, cohortSession
 
-	// on text cue
-	let latestTextCueContent = ""
-	$: splitTextCueContent = latestTextCueContent.split("|")
-	let optionButtonLabels
-	$: if(splitTextCueContent[0] != ""){
-		optionButtonLabels = splitTextCueContent
-	} else {
-		optionButtonLabels = []
-	}
+	onMount(() => {
+		startCohort()
+	})
 
-	// on lighting cue
-	$: backgroundColor = "rgb(255, 255, 255)"
-	let bodyEl = document.getElementsByTagName("body")[0]
-
-	$: {
-		let body = document.getElementsByTagName("body")[0]
-		body.setAttribute("style", "background-color: " + backgroundColor)
-	}
-	
-	let cohortTags, cohortSession, clientPingInterval, connectedOnce
 
 	const startCohort = function(){
 		// get grouping info (tags) from URL
 		// this is used to target cues to specific groupings
 		cohortTags = [ "all" ]
 		const parsedQueryString = queryString.parse(location.search)
-		// console.log(parsedQueryString)
 		const grouping = parsedQueryString.grouping
-		// console.log(grouping)
 		if(grouping != null && grouping !== undefined){
 			cohortTags.push(grouping)
 		}
 
-	 	cohortSession = new CohortClientSession(cohortSocketURL, cohortOccasion, cohortTags, playerLabel, playerSleepHours, playerActivity)
+	 	cohortSession = new CohortClientSession(cohortSocketURL, cohortOccasion, cohortTags)
 
-		connectedOnce = false
 		cohortSession.on('connected', () => {
 			connectedToCohortServer = true
-			console.log('connected to cohort server')
-			connectedOnce = true
-			showReconnectButton = false
-			clientPingInterval = setInterval(function(){
-				const payload = { action: "client_ping", clientGuid: cohortSession.guid }
-				cohortSession.send(payload)
-				connectedToCohortServer = false
-			}, 10000)
 		})
 
 		cohortSession.on('disconnected', (message) => {
 			connectedToCohortServer = false
-			console.log(connectedToCohortServer)
-			clearInterval(clientPingInterval)
-			latestTextCueContent = ""
-			selectedOption = "" // starts to look like a reset function
 		})
-		cohortSession.on('dataReceived', data => {
-			if(data.dataIdentifier == "client_pong"){
-				console.log("client-initiated ping/pong successful")
-				connectedToCohortServer = true
-			}
-		})
+
 		cohortSession.on('cueReceived', async (cue) => {
 			console.log('cue received:')
 			console.log(cue)
 
-			let cueMatchesTarget = false
-			
-			console.log(cohortTags)
-			for(var i = 0; i < cue.targetTags.length; i++){
-				console.log(cue.targetTags[i])
-				if(cohortTags.includes(cue.targetTags[i])){
-					cueMatchesTarget = true
-					break
-				}
-			}
-
-			if(cueMatchesTarget){
-				if(cue.mediaDomain == 3 && cue.cueContent !== undefined){
-					if(localClearButtonTimeout !== undefined){
-						clearTimeout(localClearButtonTimeout)
-					}					
-					
-					if(cue.cueNumber == 1){
-						alertSound.play()
-						bodyEl.classList.remove('dark')
-						latestTextCueContent = cue.cueContent
-						await delay(1000)
-						bodyEl.classList.add('dark')
-						localClearButtonTimeout = setTimeout(() => { 
-							if(latestTextCueContent != ""){ latestTextCueContent = "" }
-						}, 40000) // hides buttons in case this player misses that cue
-					} else if(cue.cueNumber == 2){
-						latestTextCueContent = ""
-						selectedOption = ""
-						if(tellWasChosen == true){
-							showTellInstructions = true
-						}
-					}
-				} else if(cue.mediaDomain == 4 && cue.cueContent !== undefined){
-					backgroundColor = cue.cueContent
-				}
-			}
+			// do stuff based on the cue (eventually this can be automated based on a cuelist, like in Unity)
 		})
 
 		cohortSession.init()
 	}
 	
 	const onReconnect = async function(){
-		try {
-      cohortSession.socket = await cohortSession.connect()
-    }
-    catch( error ) {
-			return reject(error) 
-    }
+		cohortSession.reconnect()
 	}
 
 	let showReconnectButton = false
 	$: (async () => {
-		if(connectedOnce && connectionState == "inactive"){
-			await delay(1000)
+		if(cohortSession && cohortSession.connectedOnce == true){
 			if(connectionState == "inactive"){
 				showReconnectButton = true
 			} else {
@@ -203,90 +85,6 @@
 			}
 		}
 	})()
-
-	let tellWasChosen = false
-	let showTellInstructions = false
-	const onOptionSelected = function(option){
-		selectedOption = option
-      // fetch("https://new.cohort.rocks/api/v2/occasions/" + cohortOccasion + "/broadcast", {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json', 'Authorization': 'JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldl91c2VyIiwiaWF0IjoxNTgzNjExNzk2fQ.k_9oasZ-c3-gvMKOJAHcN9Q56cKkhdeJiU2DlKhCuc4'},
-      //   body: JSON.stringify({
-			// 		mediaDomain: 3,
-			// 		cueNumber: 1,
-			// 		cueAction: 0,
-			// 		targetTags: ["stage_manager"],
-			// 		cueContent: option
-			// 	})
-			// })
-	}
-
-	let showBroadcastSuccess = false
-	const onBroadcastResult = function(event){
-		const msg = event.detail
-		if(msg.broadcastStatus !== undefined && (msg.broadcastStatus == "full-success" || msg.broadcastStatus == "partial-success")){
-			latestTextCueContent = ""
-			console.log(selectedOption)
-			if(selectedOption == "Tell"){
-				tellWasChosen = true
-			} else { tellWasChosen = false }
-
-			if(!didSendOneOption){
-				didSendOneOption = true
-				setTimeout(()=>{showRadioSwitch = true}, 10000)
-			}
-
-			selectedOption = ""
-			showBroadcastSuccess = true
-			setTimeout(() => { showBroadcastSuccess = false}, 5000)
-		}
-	}
-
-	let showRadioSwitch = false
-	let didSendOneOption = false
-	let radioOn = false
-	const onRadioSwitch = function(event){
-		console.log("User set radioOn to " + radioOn)
-		showRadioSwitch = false
-		setTimeout( () => { showRadioSwitch = true }, 30000)
-		const radioCue = {
-			mediaDomain: 0,
-			cueNumber: 1,
-			cueAction: radioOn ? 0 : 3,
-			targetTags: ["stage_manager"]
-		}
-		try {
-			fetch("https://otm.cohort.rocks/api/v2" + "/occasions/" + 14 + "/broadcast", {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json', 'Authorization': 'JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Iml0aW5lcmFyeV9wbGF5ZXIiLCJpYXQiOjE1OTc5NjgzMjV9._jhynu_UZMCwm0z759twx726_G2J1cVt2tUkNHPVQ6c'},
-				body: JSON.stringify(radioCue)
-			})
-		}
-		catch (error){
-			console.log(error)
-		}
-	}
-
-	const onRadioChangeStation = function(event){
-		showRadioSwitch = false
-		setTimeout( () => { showRadioSwitch = true }, 30000)
-		const radioCue = {
-			mediaDomain: 0,
-			cueNumber: 2,
-			cueAction: 0,
-			targetTags: ["stage_manager"]
-		}
-		try {
-			fetch("https://otm.cohort.rocks/api/v2" + "/occasions/" + 14 + "/broadcast", {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json', 'Authorization': 'JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Iml0aW5lcmFyeV9wbGF5ZXIiLCJpYXQiOjE1OTc5NjgzMjV9._jhynu_UZMCwm0z759twx726_G2J1cVt2tUkNHPVQ6c'},
-				body: JSON.stringify(radioCue)
-			})
-		}
-		catch (error){
-			console.log(error)
-		}
-	}
 
 	const delay = function(time){ // time in ms
 		return new Promise( resolve => setTimeout(resolve, time))
@@ -304,92 +102,11 @@
 <div class="container">
 	<div class="row">
 		<div class="col">
-			{#if !didSubmitPlayerInfoForm}
-				<form>
-					<div class="form-group">
-						<label for="playerLabel">Tell us your first name:</label>
-						<input type="text" id="playerLabel" name="playerLabel" bind:value={playerLabel}>
-					</div>	
-					<div class="form-group">
-						<label for="playerLabel">How many hours of sleep did you get last night?</label>
-						<input type="number" min="0" step="1" id="playerSleepHours" name="playerSleepHours" bind:value={playerSleepHours}>
-					</div>	
-					<div class="form-group">
-						<label for="playerActivity">What's an activity that gives you calm and contentment?</label>
-						<input type="text" id="playerActivity" name="playerActivity" bind:value={playerActivity}>
-					</div>
-					<button class="btn btn-dark" disabled={ playerLabel == "" || playerSleepHours == null || playerActivity == ""} on:click={ onSubmitPlayerInfoForm }>Submit</button>
-				</form>
-			{:else}
-				<p>
-					Player: { playerLabel } <br/>
-					Connection: <WebsocketConnectionIndicator status={connectionState}/>
-					{#if showReconnectButton}
-						<button class={"btn btn-link btn-reconnect-" + connectionState} on:click={onReconnect}>Reconnect</button>
-					{/if}
-				</p>
+			{#if showReconnectButton}
+				<button class="btn btn-sm btn-warning" on:click={onReconnect}>Reconnect</button>
 			{/if}
+			<WebsocketConnectionIndicator status={ connectionState }/>
 		</div>
 	</div>
+</div>
 
-	<div class="row" >
-		<div class="col">
-			{#if showRadioSwitch}
-				<div class="form-group" transition:fade={{duration: 500, delay:500}}>
-					<button class="btn btn-secondary" type="button" on:click={ (e) => {
-						radioOn = true
-						onRadioSwitch(e)
-					}}>Turn on radio</button>
-
-					<button class="btn btn-secondary" type="button" on:click={ (e) => {
-							radioOn = false
-							onRadioSwitch(e)
-						}}>Turn off radio</button>
-
-						<button class="btn btn-secondary" type="button" on:click={ (e) => {
-							onRadioChangeStation(e)
-						}}>Change radio station</button>
-				</div>
-			{:else if !showRadioSwitch && didSendOneOption}
-				<p transition:fade={{duration: 500, delay: 500}}>The radio switch can't be used again yet.</p>
-			{/if}
-		</div>
-	</div>
-
-	{#if optionButtonLabels.includes("Tell")}
-		<div class="row">
-			<div class="col">
-				<p>Dear Lucid Dreamers,<br/>
-					In the waking world, the patient you are with right now will be taken off life support at 0600.<br/>
-					You can decide whether or not to tell them.
-				</p>
-			</div>
-		</div>
-	{/if}
-	
-	<div class="row">
-		<div class="col">
-		<!-- <Event 
-			event={itineraryEvent} 
-			connectedToCohortServer={connectedToCohortServer}
-			episodeNumberToPlay={episodeNumberToPlay}
-		/> -->
-		
-		<!-- itinerary UI goes here -->
-		<!-- <ul class="d-flex flex-wrap mt-8"> -->
-			<!-- <li class="mb-4"> -->
-			{#each optionButtonLabels as buttonLabel, index}
-				<button 
-					type="button" 
-					class="btn btn-dark text-center"
-					transition:fade={{duration: 500, delay: index * 75, easing: sineInOut}}
-					on:click={e => onOptionSelected(e.target.innerHTML)}>
-					{buttonLabel}
-				</button>
-			{/each}
-			<!-- </li> -->
-		<!-- </ul> -->
-		</div>
-	</div>
-
-<AudioPlayer audioUrl={"." + "/" + 'sounds/intro-score.mp3'}/>

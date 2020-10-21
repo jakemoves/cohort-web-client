@@ -8,7 +8,7 @@ export let status = "unknown"
   width: 20px;
   border-radius: 50%;
   display: inline-block;
-  transition: background-color 0.5s linear 1s;
+  transition: background-color 0.5s linear;
 }
 
 .indicator.connection-active {
