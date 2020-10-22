@@ -8,6 +8,9 @@
 	/*
 	 *    Prepare Cohort functionality (for live cues)
 	 */	
+	//
+	//This is here because you can't connect locally to secure sites, or vice versa. A local server is required for testing locally.
+	//ws = http, wss = https
 	let environment = "local" // can be local, dev, prod
 	let cohortSocketURL
 
