@@ -11,7 +11,7 @@
 	//
 	//This is here because you can't connect locally to secure sites, or vice versa. A local server is required for testing locally.
 	//ws = http, wss = https
-	let environment = "local" // can be local, dev, prod
+	let environment = "staging" // can be local, dev, prod
 	let cohortSocketURL
 
 	switch(environment){
@@ -21,6 +21,9 @@
 		case "dev": 
 			cohortSocketURL = 'ws://[INSERT LOCAL IP ADDRESS]:3000/sockets'
 			break
+		case "staging":
+			cohortSocketURL = 'wss://staging.cohort.rocks/sockets'
+			break
 		case "prod":
 			cohortSocketURL = 'wss://cohort.rocks/sockets'
 			break
@@ -28,7 +31,7 @@
 			throw new Error("invalid 'environment' value")
 	}
 
-	let cohortOccasion = 8
+	let cohortOccasion = 14
 	let connectedToCohortServer
 	let connectionState = "unknown"
   $: {
