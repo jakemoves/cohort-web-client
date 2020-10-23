@@ -1,3 +1,7 @@
+<!--
+	Copyright Jacob Niedzwiecki, 2019
+	Released under the MIT License (see /LICENSE)
+ -->
 <script>
 import { fade, fly } from 'svelte/transition'
 import { onMount } from 'svelte'

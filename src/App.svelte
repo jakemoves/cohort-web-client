@@ -1,3 +1,8 @@
+<!--
+	Copyright Jacob Niedzwiecki, 2019
+	Released under the MIT License (see /LICENSE)
+ -->
+
 <script>
 	import queryString from 'query-string'
 	import AudioPlayer from './AudioPlayer.svelte'

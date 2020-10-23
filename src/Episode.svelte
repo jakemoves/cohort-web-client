@@ -1,3 +1,8 @@
+<!--
+	Copyright Jacob Niedzwiecki, 2019
+	Released under the MIT License (see /LICENSE)
+ -->
+ 
 <script context="module">
 let currentPlayer // creates a single "global" variable for all Episodes
 
